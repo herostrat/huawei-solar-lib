@@ -2,8 +2,8 @@
 
 from . import register_names, register_values, register_definitions
 from .bridge import (
-    HuaweiEMMABridge,
     HuaweiChargerBridge,
+    HuaweiEMMABridge,
     HuaweiSolarBridge,
     HuaweiSUN2000Bridge,
     create_rtu_bridge,
@@ -30,8 +30,8 @@ __all__ = [
     "ConnectionInterruptedException",
     "DecodeError",
     "EncodeError",
-    "HuaweiEMMABridge",
     "HuaweiChargerBridge",
+    "HuaweiEMMABridge",
     "HuaweiSUN2000Bridge",
     "HuaweiSolarBridge",
     "HuaweiSolarException",
