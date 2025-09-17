@@ -531,9 +531,10 @@ TOTAL_POSITIVE_ACTIVE_ENERGY_EXTERNAL_ENERGY_SENSOR = RegisterName(
 )
 EMMA_ESS_CONTROL_MODE = RegisterName("emma_ess_control_mode")
 EMMA_TOU_PREFERRED_USE_OF_SURPLUS_PV_POWER = RegisterName("emma_tou_preferred_use_of_surplus_pv_power")
-EMMA_TOU_MAXIMUNM_POWER_FOR_CHARGING_BATTERIES_FROM_GRID = RegisterName(
-    "emma_tou_maximunm_power_for_charging_batteries_from_grid",
+EMMA_TOU_MAXIMUM_POWER_FOR_CHARGING_BATTERIES_FROM_GRID = RegisterName(
+    "emma_tou_maximum_power_for_charging_batteries_from_grid"
 )
+EMMA_TOU_PERIODS = RegisterName("emma_tou_periods")
 EMMA_POWER_CONTROL_MODE_AT_GRID_CONNECTION_POINT = RegisterName("emma_power_control_mode_at_grid_connection_point")
 EMMA_LIMITATION_MODE = RegisterName("emma_limitation_mode")
 EMMA_MAXIMUM_FEED_GRID_POWER_WATT = RegisterName("emma_maximum_feed_grid_power_watt")
