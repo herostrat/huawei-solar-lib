@@ -17,7 +17,6 @@ from .const import (
     MAX_BATCHED_REGISTERS_GAP,
     MAX_NUMBER_OF_PV_STRINGS,
 )
-from .modbus import PermissionDeniedError
 from .exceptions import (
     HuaweiSolarException,
     InvalidCredentials,
@@ -36,6 +35,7 @@ from .huawei_solar import (
     AsyncHuaweiSolar,
     Result,
 )
+from .modbus import PermissionDeniedError
 from .register_values import StorageProductModel
 from .registers import METER_REGISTERS, REGISTERS, TimestampRegister
 
@@ -71,7 +71,7 @@ class HuaweiSolarProductInfo:
                 rn.FIRMWARE_VERSION,
                 rn.SOFTWARE_VERSION,
             ],
-            slave_id,
+            slave_id=slave_id,
         )
 
         return cls(
@@ -162,7 +162,7 @@ class HuaweiSolarBridge(ABC):
         return dict(
             zip(
                 names,
-                await self.client.get_multiple(names, self.slave_id),
+                await self.client.get_multiple(names),
                 strict=False,
             ),
         )
@@ -269,7 +269,7 @@ class HuaweiSolarBridge(ABC):
             )
 
         try:
-            return await self.client.get_file(file_type, customized_data, self.slave_id)
+            return await self.client.get_file(file_type, customized_data)
         except PermissionDeniedError:
             if self.__username:
                 logged_in = await self.ensure_logged_in(force=True)
@@ -281,7 +281,6 @@ class HuaweiSolarBridge(ABC):
                 return await self.client.get_file(
                     file_type,
                     customized_data,
-                    self.slave_id,
                 )
 
             # we have no login-credentials available, pass on permission error
@@ -303,10 +302,10 @@ class HuaweiSolarBridge(ABC):
     async def has_write_permission(self) -> bool:
         """Test write permission by getting the time zone and trying to write that same value back to the inverter."""
         try:
-            result = await self.client.get(self._write_test_register, self.slave_id)
+            result = await self.client.get(self._write_test_register)
 
-            await self.client.set(self._write_test_register, result.value, self.slave_id)
-        except PermissionDenied:
+            await self.client.set(self._write_test_register, result.value)
+        except PermissionDeniedError:
             return False
         else:
             return True
@@ -335,7 +334,7 @@ class HuaweiSolarBridge(ABC):
     async def login(self, username: str, password: str) -> bool:
         """Perform the login-sequence with the provided username/password."""
         async with self.__login_lock:
-            if not await self.client.login(username, password, self.slave_id):
+            if not await self.client.login(username, password):
                 raise InvalidCredentials
 
             # save the correct login credentials
@@ -362,9 +361,7 @@ class HuaweiSolarBridge(ABC):
         async def heartbeat() -> None:
             while self.__heartbeat_enabled:
                 try:
-                    self.__heartbeat_enabled = await self.client.heartbeat(
-                        self.slave_id,
-                    )
+                    self.__heartbeat_enabled = await self.client.heartbeat()
                     await asyncio.sleep(HEARTBEAT_INTERVAL)
                 except HuaweiSolarException as err:
                     _LOGGER.warning("Heartbeat stopped because of, %s", err)
@@ -382,13 +379,13 @@ class HuaweiSolarBridge(ABC):
 
         if self.__heartbeat_enabled:
             try:
-                await self.client.heartbeat(self.slave_id)
+                await self.client.heartbeat()
             except HuaweiSolarException:
                 _LOGGER.warning("Failed to perform heartbeat before write")
 
         try:
-            return await self.client.set(name, value, slave_id=self.slave_id)
-        except PermissionDenied:
+            return await self.client.set(name, value)
+        except PermissionDeniedError:
             if self.__username:
                 logged_in = await self.ensure_logged_in(force=True)
 
@@ -397,9 +394,9 @@ class HuaweiSolarBridge(ABC):
                     raise
 
                 # Force a heartbeat first when connected with username/password credentials
-                await self.client.heartbeat(self.slave_id)
+                await self.client.heartbeat()
 
-                return await self.client.set(name, value, slave_id=self.slave_id)
+                return await self.client.set(name, value)
 
             # we have no login-credentials available, pass on permission error
             raise
@@ -437,29 +434,19 @@ class HuaweiSUN2000Bridge(HuaweiSolarBridge):
         )
 
     async def _populate_additional_fields(self) -> None:
-        self.pv_string_count = (await self.client.get(rn.NB_PV_STRINGS, self.slave_id)).value
+        self.pv_string_count = (await self.client.get(rn.NB_PV_STRINGS)).value
         self._pv_registers = self._compute_pv_registers()
 
         with suppress(
             ReadException,  # some inverters throw an IllegalAddress exception when accessing this address
         ):
-            self.has_optimizers = (await self.client.get(rn.NB_OPTIMIZERS, self.slave_id)).value
+            self.has_optimizers = (await self.client.get(rn.NB_OPTIMIZERS)).value
 
         with suppress(ReadException):
-            self.battery_1_type = (
-                await self.client.get(
-                    rn.STORAGE_UNIT_1_PRODUCT_MODEL,
-                    self.slave_id,
-                )
-            ).value
+            self.battery_1_type = (await self.client.get(rn.STORAGE_UNIT_1_PRODUCT_MODEL)).value
 
         with suppress(ReadException):
-            self.battery_2_type = (
-                await self.client.get(
-                    rn.STORAGE_UNIT_2_PRODUCT_MODEL,
-                    self.slave_id,
-                )
-            ).value
+            self.battery_2_type = (await self.client.get(rn.STORAGE_UNIT_2_PRODUCT_MODEL)).value
 
         if (
             self.battery_1_type is not StorageProductModel.NONE
@@ -472,27 +459,22 @@ class HuaweiSUN2000Bridge(HuaweiSolarBridge):
 
         if self.battery_type != rv.StorageProductModel.NONE:
             try:
-                await self.client.get(
-                    rn.STORAGE_CAPACITY_CONTROL_MODE,
-                    self.slave_id,
-                )
+                await self.client.get(rn.STORAGE_CAPACITY_CONTROL_MODE)
                 self.supports_capacity_control = True
             except ReadException:
                 _LOGGER.debug("Storage capacity control as it is not supported by device %d", self.slave_id)
                 self.supports_capacity_control = False
 
         with suppress(ReadException):
-            self.power_meter_online = (
-                await self.client.get(rn.METER_STATUS, self.slave_id)
-            ).value == rv.MeterStatus.NORMAL
+            self.power_meter_online = (await self.client.get(rn.METER_STATUS)).value == rv.MeterStatus.NORMAL
 
         # Caveat: if the inverter is in offline mode, and the power meter is thus offline,
         # we will incorrectly detect that no power meter is present.
         if self.power_meter_online:
-            self.power_meter_type = (await self.client.get(rn.METER_TYPE, self.slave_id)).value
+            self.power_meter_type = (await self.client.get(rn.METER_TYPE)).value
 
-        self._dst = (await self.client.get(rn.DAYLIGHT_SAVING_TIME, self.slave_id)).value
-        self._time_zone = (await self.client.get(rn.TIME_ZONE, self.slave_id)).value
+        self._dst = (await self.client.get(rn.DAYLIGHT_SAVING_TIME)).value
+        self._time_zone = (await self.client.get(rn.TIME_ZONE)).value
 
     def _handle_batch_read_error(self, queried_register_names: list[str], exc: HuaweiSolarException) -> None:
         """Handle read errors in batch_update."""
@@ -538,10 +520,7 @@ class HuaweiSUN2000Bridge(HuaweiSolarBridge):
         if power_meter_register_names:
             # Do a check of the METER_STATUS register only if the power meter is marked offline
             if not self.power_meter_online:
-                power_meter_online_register = await self.client.get(
-                    rn.METER_STATUS,
-                    self.slave_id,
-                )
+                power_meter_online_register = await self.client.get(rn.METER_STATUS)
                 self.power_meter_online = power_meter_online_register.value
 
                 _LOGGER.debug("Power meter online: %s", self.power_meter_online)
@@ -580,9 +559,9 @@ class HuaweiSUN2000Bridge(HuaweiSolarBridge):
             # Inverters don't return their own system time when connected via EMMA.
             # Instead, we need to read the system time from the EMMA device.
 
-            return (await self.client.get(rn.EMMA_SYSTEM_TIME, self.client.slave_id)).value
+            return (await self.client.get(rn.EMMA_SYSTEM_TIME)).value
 
-        return (await self.client.get(rn.SYSTEM_TIME_RAW, self.slave_id)).value
+        return (await self.client.get(rn.SYSTEM_TIME_RAW)).value
 
     async def get_latest_optimizer_history_data(
         self,
@@ -659,7 +638,7 @@ class HuaweiEMMABridge(HuaweiSolarBridge):
         return True
 
     async def _populate_additional_fields(self) -> None:
-        self.model = (await self.client.get(rn.EMMA_MODEL, self.slave_id)).value
+        self.model = (await self.client.get(rn.EMMA_MODEL)).value
 
 
 BRIDGE_CLASSES: list[type[HuaweiSolarBridge]] = [HuaweiSUN2000Bridge, HuaweiEMMABridge]
@@ -680,7 +659,7 @@ async def create_rtu_bridge(
     slave_id: int = DEFAULT_SLAVE_ID,
 ) -> HuaweiSolarBridge:
     """Connect to the device via Modbus RTU and create the appropriate bridge."""
-    return await _create(await AsyncHuaweiSolar.create_rtu(port, baudrate, slave_id), slave_id)
+    return await _create(await AsyncHuaweiSolar.create_rtu(port, baudrate=baudrate, slave_id=slave_id), slave_id)
 
 
 async def create_sub_bridge(
@@ -690,7 +669,7 @@ async def create_sub_bridge(
     """Create a HuaweiSolarBridge instance for extra servers accessible as subdevices via an existing Bridge."""
     assert primary_bridge.slave_id != slave_id
     return await _create(
-        primary_bridge.client,
+        primary_bridge.client.for_slave_id(slave_id),
         slave_id,
         primary_bridge.update_lock,
         connected_via_emma=isinstance(primary_bridge, HuaweiEMMABridge),

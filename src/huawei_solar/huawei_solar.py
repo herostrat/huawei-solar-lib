@@ -139,11 +139,9 @@ class AsyncHuaweiSolar:
     def __init__(
         self,
         client: AsyncModbusClient,
-        slave_id: int = DEFAULT_SLAVE_ID,
     ) -> None:
         """DO NOT USE THIS CONSTRUCTOR DIRECTLY. Use AsyncHuaweiSolar.create() instead."""
         self._client = client
-        self.slave_id = slave_id
 
     @classmethod
     async def create(
@@ -158,6 +156,7 @@ class AsyncHuaweiSolar:
         client = create_async_tcp_client(
             host,
             port,
+            unit_id=slave_id,
             timeout=timeout,
             wait_between_requests=cooldown_time,
             wait_after_connect=1.0,
@@ -181,7 +180,7 @@ class AsyncHuaweiSolar:
 
             raise ConnectionException from err
         else:
-            return cls(client, slave_id)
+            return cls(client)
 
     @classmethod
     async def create_rtu(
@@ -196,7 +195,7 @@ class AsyncHuaweiSolar:
         if "baudrate" not in serial_kwargs:
             serial_kwargs["baudrate"] = DEFAULT_BAUDRATE
 
-        client = create_async_rtu_client(port, wait_between_requests=cooldown_time, **serial_kwargs)
+        client = create_async_rtu_client(port, unit_id=slave_id, wait_between_requests=cooldown_time, **serial_kwargs)
         try:
             await client.connect()
         except Exception as err:
@@ -211,11 +210,22 @@ class AsyncHuaweiSolar:
 
             raise ConnectionException from err
         else:
-            return cls(client, slave_id)
+            return cls(client)
 
     async def stop(self) -> None:
         """Stop the modbus client."""
         await self._client.close()
+
+    @property
+    def slave_id(self) -> int:
+        """Get the slave ID."""
+        return self._client.unit_id
+
+    def for_slave_id(self, slave_id: int) -> "AsyncHuaweiSolar":
+        """Get a copy of this client for a different slave ID."""
+        if slave_id == self.slave_id:
+            return self
+        return AsyncHuaweiSolar(self._client.for_unit_id(slave_id))
 
     async def _decode_response(
         self,
@@ -229,11 +239,11 @@ class AsyncHuaweiSolar:
             return Result(result, None)
         return Result(result, reg.unit)
 
-    async def get(self, name: str, slave_id: int | None = None) -> Result:
+    async def get(self, name: str) -> Result:
         """Get named register from device."""
-        return (await self.get_multiple([name], slave_id))[0]
+        return (await self.get_multiple([name]))[0]
 
-    async def get_multiple(self, names: list[str], slave_id: int | None = None) -> list[Result]:
+    async def get_multiple(self, names: list[str], *, slave_id: int | None = None) -> list[Result]:
         """Read multiple registers at the same time.
 
         This is only possible if the registers are consecutively available in the
@@ -275,11 +285,7 @@ class AsyncHuaweiSolar:
 
         total_length = registers[-1].register + registers[-1].length - registers[0].register
 
-        response_registers = await self._read_registers(
-            registers[0].register,
-            total_length,
-            slave_id,
-        )
+        response_registers = await self._read_registers(registers[0].register, total_length, slave_id=slave_id)
 
         start_register = registers[0].register
 
@@ -295,7 +301,8 @@ class AsyncHuaweiSolar:
         self,
         register: int,
         length: int,
-        slave_id: int | None,
+        *,
+        slave_id: int | None = None,
     ) -> list[int]:
         """Async read register from device.
 
@@ -311,14 +318,15 @@ class AsyncHuaweiSolar:
             "Reading register %d with length %d from server %s",
             register,
             length,
-            slave_id or self.slave_id,
+            self._client.unit_id,
         )
 
+        client = self._client.for_unit_id(slave_id) if slave_id is not None else self._client
+
         try:
-            response_registers = await self._client.read_holding_registers(
+            response_registers = await client.read_holding_registers(
                 register,
                 quantity=length,
-                unit_id=slave_id or self.slave_id,
             )
         # trigger a backoff if we get a SlaveBusy-exception
         except (ServerDeviceBusyError, ServerDeviceFailureError) as e:
@@ -327,7 +335,7 @@ class AsyncHuaweiSolar:
                 type(e).__name__,
                 register,
                 length,
-                slave_id or self.slave_id,
+                self._client.unit_id,
             )
             msg = f"Got a {type(e).__name__}  while reading from register {register} with length {length}"
             raise ReadException(msg) from e
@@ -336,7 +344,7 @@ class AsyncHuaweiSolar:
                 "Got a ModbusResponseError while reading %d (length %d) from server %d",
                 register,
                 length,
-                slave_id or self.slave_id,
+                self._client.unit_id,
             )
             msg = f"Got error while reading from register {register} with length {length}: {e}"
             raise ReadException(msg, modbus_exception_code=e.error_code) from e
@@ -365,13 +373,12 @@ class AsyncHuaweiSolar:
             return await self._client.read_device_identification(
                 device_code=read_dev_id_code,
                 object_id=object_id,
-                unit_id=self.slave_id,
             )
         except (ServerDeviceBusyError, ServerDeviceFailureError, PermissionDeniedError) as e:
             LOGGER.debug(
                 "Got a %s while reading device identification from server %d",
                 type(e).__name__,
-                self.slave_id,
+                self._client.unit_id,
             )
             raise
         except ModbusResponseError as e:
@@ -436,7 +443,6 @@ class AsyncHuaweiSolar:
         self,
         file_type: int,
         customized_data: bytes | None = None,
-        slave_id: int | None = None,
     ) -> bytes:
         """Read a 'file' via Modbus.
 
@@ -446,7 +452,7 @@ class AsyncHuaweiSolar:
         LOGGER.debug(
             "Reading file %#x from server %d",
             file_type,
-            slave_id or self.slave_id,
+            self._client.unit_id,
         )
         # Start the upload
         start_upload_response = await self._client.execute(
@@ -454,7 +460,6 @@ class AsyncHuaweiSolar:
                 file_type=file_type,
                 customised_data=customized_data or b"",
             ),
-            unit_id=slave_id or self.slave_id,
         )
 
         file_length = start_upload_response.file_length
@@ -468,7 +473,6 @@ class AsyncHuaweiSolar:
         while (next_frame_no * data_frame_length) < file_length:
             data_upload_response = await self._client.execute(
                 UploadFileFramePDU(file_type=file_type, frame_no=next_frame_no),
-                unit_id=slave_id or self.slave_id,
             )
 
             file_data += data_upload_response.frame_data
@@ -477,7 +481,6 @@ class AsyncHuaweiSolar:
         # Complete the upload and check the CRC
         file_crc = await self._client.execute(
             CompleteUploadPDU(file_type=file_type),
-            unit_id=slave_id or self.slave_id,
         )
 
         # swap upper and lower two bytes to match how computeCRC works
@@ -496,7 +499,6 @@ class AsyncHuaweiSolar:
         self,
         name: str,
         value: Any,  # noqa: ANN401
-        slave_id: int | None = None,
     ) -> bool:
         """Set named register on device."""
         try:
@@ -518,14 +520,12 @@ class AsyncHuaweiSolar:
         return await self._write_registers(
             reg.register,
             registers,
-            slave_id,
         )
 
     async def _write_registers(
         self,
         register: int,
         value: list[int],
-        slave_id: int | None = None,
     ) -> bool:
         """Async write register to device."""
         try:
@@ -533,21 +533,19 @@ class AsyncHuaweiSolar:
                 "Writing to %d: %s on server %d",
                 register,
                 value,
-                slave_id or self.slave_id,
+                self._client.unit_id,
             )
 
             if len(value) == 1:
                 response = await self._client.write_single_register(
                     register,
                     value[0],
-                    unit_id=slave_id or self.slave_id,
                 )
                 return response == value[0]
 
             number_of_registers_written = await self._client.write_multiple_registers(
                 register,
                 value,
-                unit_id=slave_id or self.slave_id,
             )
             return number_of_registers_written == len(value)
 
@@ -566,17 +564,15 @@ class AsyncHuaweiSolar:
             LOGGER.exception("Failed to connect to device, is the host correct?")
             raise ConnectionInterruptedException(err) from err
 
-    async def login(self, username: str, password: str, slave_id: int | None = None) -> bool:
+    async def login(self, username: str, password: str) -> bool:
         """Login onto the inverter."""
         LOGGER.debug("Logging in '%s'", username)
         inverter_challenge = await self._client.execute(
             LoginRequestChallengePDU(),
-            unit_id=slave_id or self.slave_id,
         )
 
         logged_in = await self._client.execute(
             LoginPDU(username, password, inverter_challenge),
-            unit_id=slave_id or self.slave_id,
         )
         if logged_in:
             # Make sure we re-login after a reconnect
@@ -585,7 +581,7 @@ class AsyncHuaweiSolar:
             async def login_on_reconnect() -> None:
                 """Login again after a reconnect."""
                 LOGGER.info("Reconnected to inverter, logging in again")
-                logged_in_again = await self.login(username, password, slave_id)
+                logged_in_again = await self.login(username, password)
                 if not logged_in_again:
                     LOGGER.error("Failed to login after reconnect. Will not try again.")
                     assert isinstance(self._client.transport, AsyncSmartTransport)
@@ -595,7 +591,7 @@ class AsyncHuaweiSolar:
 
         return logged_in
 
-    async def heartbeat(self, slave_id: int | None = None) -> bool:
+    async def heartbeat(self) -> bool:
         """Perform the heartbeat command. Only useful when maintaining a session."""
         if not self._client.connected:
             return False
@@ -604,7 +600,6 @@ class AsyncHuaweiSolar:
             await self._client.write_single_register(
                 HEARTBEAT_REGISTER,
                 0x1,
-                unit_id=slave_id or self.slave_id,
             )
         except ModbusResponseError as e:
             LOGGER.warning("Received an error response when writing to the heartbeat register: %02x", e.error_code)
