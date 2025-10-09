@@ -36,8 +36,9 @@ from .huawei_solar import (
     Result,
 )
 from .modbus import PermissionDeniedError
+from .register_definitions import TimestampRegister
 from .register_values import StorageProductModel
-from .registers import METER_REGISTERS, REGISTERS, TimestampRegister
+from .registers import METER_REGISTERS, REGISTERS
 
 _LOGGER = logging.getLogger(__name__)
 

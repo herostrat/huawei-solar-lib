@@ -1,4 +1,4 @@
-"""Custom classes for pyModbus."""
+"""Custom PDU classes for tmodbus."""
 
 import hmac
 import logging
@@ -295,7 +295,7 @@ class CompleteUploadPDU(BaseSubFunctionClientPDU[int]):
         data_length = 1
         return struct.pack(">BBBB", self.function_code, self.sub_function_code, data_length, self.file_type)
 
-    def decode_response(self, response: bytes) -> None:
+    def decode_response(self, response: bytes) -> int:
         """Decode CompleteUploadModbusResponse."""
         function_code, sub_function_code, data_length, file_type, file_crc = struct.unpack(">BBBBH", response)
         if function_code != self.function_code:

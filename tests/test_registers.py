@@ -1,5 +1,5 @@
 import huawei_solar.register_names as rn
-from huawei_solar.registers import REGISTERS, PeakSettingPeriod
+from huawei_solar.register_definitions import REGISTERS, PeakSettingPeriod
 
 
 def test_capacity_control_register():

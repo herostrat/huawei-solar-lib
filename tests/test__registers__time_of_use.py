@@ -4,7 +4,7 @@ import pytest
 
 import huawei_solar.register_names as rn
 from huawei_solar.exceptions import TimeOfUsePeriodsException
-from huawei_solar.registers import REGISTERS, ChargeFlag, HUAWEI_LUNA2000_TimeOfUsePeriod, LG_RESU_TimeOfUsePeriod
+from huawei_solar.register_definitions import REGISTERS, ChargeFlag, HUAWEI_LUNA2000_TimeOfUsePeriod, LG_RESU_TimeOfUsePeriod
 
 huawei_ppr = REGISTERS[rn.STORAGE_HUAWEI_LUNA2000_TIME_OF_USE_CHARGING_AND_DISCHARGING_PERIODS]
 lg_ppr = REGISTERS[rn.STORAGE_LG_RESU_TIME_OF_USE_CHARGING_AND_DISCHARGING_PERIODS]

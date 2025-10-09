@@ -1,6 +1,6 @@
 """Interact with Huawei inverters over Modbus."""
 
-from . import register_names, register_values, registers
+from . import register_names, register_values, register_definitions
 from .bridge import (
     HuaweiEMMABridge,
     HuaweiSolarBridge,
@@ -44,5 +44,5 @@ __all__ = [
     "create_tcp_bridge",
     "register_names",
     "register_values",
-    "registers",
+    "register_definitions",
 ]

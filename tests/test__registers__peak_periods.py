@@ -2,7 +2,7 @@ import pytest
 
 import huawei_solar.register_names as rn
 from huawei_solar.exceptions import PeakPeriodsValidationError
-from huawei_solar.registers import REGISTERS, PeakSettingPeriod
+from huawei_solar.register_definitions import REGISTERS, PeakSettingPeriod
 
 ppr = REGISTERS[rn.STORAGE_CAPACITY_CONTROL_PERIODS]
 

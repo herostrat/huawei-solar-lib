@@ -1,372 +1,34 @@
 """Register definitions from the Huawei inverter."""
 
-import struct
-from collections.abc import Callable
-from dataclasses import dataclass
-from datetime import datetime
-from enum import Flag, IntEnum, auto
 from functools import partial
-from inspect import isclass
-from typing import Any, Generic, Never, TypeVar, cast
-
-from pymodbus.client.mixin import ModbusClientMixin
+from typing import Any, TypeVar
 
 import huawei_solar.register_names as rn
 import huawei_solar.register_values as rv
-from huawei_solar.exceptions import (
-    DecodeError,
-    PeakPeriodsValidationError,
-    TimeOfUsePeriodsException,
-    WriteException,
+from huawei_solar.register_definitions import (
+    ChargeDischargePeriodRegisters,
+    HUAWEI_LUNA2000_TimeOfUseRegisters,
+    I16Register,
+    I32AbsoluteValueRegister,
+    I32Register,
+    I64Register,
+    LG_RESU_TimeOfUseRegisters,
+    PeakSettingPeriodRegisters,
+    RegisterDefinition,
+    StringRegister,
+    TargetDevice,
+    TimestampRegister,
+    U16Register,
+    U32Register,
+    U64Register,
 )
 
 T = TypeVar("T")
 
-UnitType = None | str | dict[Any, T] | Callable[..., T]
 
-
-class TargetDevice(Flag):
-    """Target device for a register."""
-
-    SUN2000 = auto()
-    EMMA = auto()
-    SDONGLE = auto()
-    SMARTLOGGER = auto()
-
-
-class RegisterDefinition(Generic[T]):
-    """Base class for register definitions."""
-
-    unit: UnitType = None
-    datatype: ModbusClientMixin.DATATYPE
-    length: int
-
-    def __init__(
-        self,
-        register: int,
-        length: int,
-        *,
-        writeable: bool = False,
-        readable: bool = True,
-        target_device: TargetDevice = TargetDevice.SUN2000,
-    ) -> None:
-        """Create RegisterDefinition."""
-        self.register = register
-        self.length = length
-        self.writeable = writeable
-        self.readable = readable
-        self.target_device = target_device
-
-    def encode(self, data: T) -> list[int]:
-        """Encode register to bytes."""
-        return ModbusClientMixin.convert_to_registers(data, self.datatype)  # type: ignore[report-argument-type]
-
-    def decode(self, registers: list[int]) -> T:
-        """Decode register to value."""
-        return ModbusClientMixin.convert_from_registers(registers, self.datatype)  # type: ignore[report-argument-type]
-
-    def _validate(self, data: T) -> Never:
-        """Validate data type."""
-        raise NotImplementedError
-
-
-class StringRegister(RegisterDefinition[str]):
-    """A string register."""
-
-    datatype = ModbusClientMixin.DATATYPE.STRING
-
-    def decode(self, registers: list[int]) -> str:
-        """Decode string."""
-        b = registers_to_bytearray(registers)
-
-        # remove trailing null bytes
-        trailing_nulls_begin = len(b)
-        while trailing_nulls_begin > 0 and b[trailing_nulls_begin - 1] == 0:
-            trailing_nulls_begin -= 1
-
-        b = b[:trailing_nulls_begin]
-
-        try:
-            return b.decode("utf-8")
-        except UnicodeDecodeError as err:
-            raise DecodeError from err
-
-
-class NumberRegister(RegisterDefinition[T], Generic[T]):
-    """Base class for number registers."""
-
-    def __init__(  # noqa: PLR0913
-        self,
-        unit: UnitType,
-        gain: int,
-        register: int,
-        length: int,
-        *,
-        writeable: bool = False,
-        readable: bool = True,
-        invalid_value: int | None = None,
-        target_device: TargetDevice = TargetDevice.SUN2000,
-    ) -> None:
-        """Initialize NumberRegister."""
-        super().__init__(
-            register,
-            length,
-            writeable=writeable,
-            readable=readable,
-            target_device=target_device,
-        )
-        self.unit = unit
-        self.gain = gain
-
-        self._invalid_value = invalid_value
-
-    def decode(self, registers: list[int]) -> T | None:
-        """Decode number register."""
-        result = cast("int", ModbusClientMixin.convert_from_registers(registers, self.datatype))
-
-        if self._invalid_value is not None and result == self._invalid_value:
-            return None
-
-        if callable(self.unit):
-            assert self.gain == 1
-            try:
-                result = cast("T", self.unit(result))
-            except ValueError as err:
-                raise DecodeError from err
-        elif isinstance(self.unit, dict):
-            assert self.gain == 1
-            try:
-                result = cast("T", self.unit[result])
-            except KeyError as err:
-                raise DecodeError from err
-
-        if self.gain != 1:
-            result /= self.gain  # type: ignore[report-operator-issue]
-        return result  # type: ignore[report-return-type]
-
-    def encode(self, data: T) -> list[int]:
-        """Encode number register."""
-        if isinstance(data, int):
-            int_data = data * self.gain
-        elif isinstance(data, float):
-            int_data = int(data * self.gain)  # it should always be an int!
-        elif self.unit is bool:
-            assert isinstance(data, bool)
-            int_data = int(data)
-            assert self.gain == 1
-        elif isclass(self.unit) and issubclass(self.unit, IntEnum):
-            assert isinstance(data, self.unit)
-            int_data = int(data)
-            assert self.gain == 1
-        elif isclass(self.unit) and not isinstance(data, self.unit):
-            msg = f"Expected data of type {self.unit}, but got {type(data)}"
-            raise WriteException(
-                msg,
-            )
-        else:
-            msg = f"Unsupported type: {type(data)}."
-            raise WriteException(msg)
-
-        return ModbusClientMixin.convert_to_registers(int_data, self.datatype)
-
-
-class U16Register(NumberRegister[T], Generic[T]):
-    """Unsigned 16-bit register."""
-
-    datatype = ModbusClientMixin.DATATYPE.UINT16
-
-    def __init__(  # noqa: PLR0913
-        self,
-        unit: UnitType,
-        gain: int,
-        register: int,
-        *,
-        writeable: bool = False,
-        readable: bool = True,
-        ignore_invalid: bool = False,
-        target_device: TargetDevice = TargetDevice.SUN2000,
-    ) -> None:
-        """Create Unsigned 16-bit register."""
-        super().__init__(
-            unit=unit,
-            gain=gain,
-            register=register,
-            length=1,
-            writeable=writeable,
-            readable=readable,
-            invalid_value=2**16 - 1 if not ignore_invalid else None,
-            target_device=target_device,
-        )
-
-
-class U32Register(NumberRegister[T], Generic[T]):
-    """Unsigned 32-bit register."""
-
-    datatype = ModbusClientMixin.DATATYPE.UINT32
-
-    def __init__(
-        self,
-        unit: UnitType,
-        gain: int,
-        register: int,
-        *,
-        writeable: bool = False,
-        target_device: TargetDevice = TargetDevice.SUN2000,
-    ) -> None:
-        """Create Unsigned 32-bit register."""
-        super().__init__(
-            unit=unit,
-            gain=gain,
-            register=register,
-            length=2,
-            writeable=writeable,
-            invalid_value=2**32 - 1,
-            target_device=target_device,
-        )
-
-
-class U64Register(NumberRegister[T], Generic[T]):
-    """Unsigned 64-bit register."""
-
-    datatype = ModbusClientMixin.DATATYPE.UINT64
-
-    def __init__(
-        self,
-        unit: UnitType,
-        gain: int,
-        register: int,
-        *,
-        writeable: bool = False,
-        target_device: TargetDevice = TargetDevice.SUN2000,
-    ) -> None:
-        """Create Unsigned 64-bit register."""
-        super().__init__(
-            unit=unit,
-            gain=gain,
-            register=register,
-            length=4,
-            writeable=writeable,
-            invalid_value=2**63 - 1,
-            target_device=target_device,
-        )
-
-
-class I16Register(NumberRegister[T], Generic[T]):
-    """Signed 16-bit register."""
-
-    datatype = ModbusClientMixin.DATATYPE.INT16
-
-    def __init__(
-        self,
-        unit: UnitType,
-        gain: int,
-        register: int,
-        *,
-        writeable: bool = False,
-        target_device: TargetDevice = TargetDevice.SUN2000,
-    ) -> None:
-        """Create Signed 16-bit register."""
-        super().__init__(
-            unit=unit,
-            gain=gain,
-            register=register,
-            length=1,
-            writeable=writeable,
-            invalid_value=2**15 - 1,
-            target_device=target_device,
-        )
-
-
-class I32Register(NumberRegister[T], Generic[T]):
-    """Signed 32-bit register."""
-
-    datatype = ModbusClientMixin.DATATYPE.INT32
-
-    def __init__(
-        self,
-        unit: UnitType,
-        gain: int,
-        register: int,
-        *,
-        writeable: bool = False,
-        target_device: TargetDevice = TargetDevice.SUN2000,
-    ) -> None:
-        """Create Signed 32-bit register."""
-        super().__init__(
-            unit=unit,
-            gain=gain,
-            register=register,
-            length=2,
-            writeable=writeable,
-            invalid_value=2**31 - 1,
-            target_device=target_device,
-        )
-
-
-class I64Register(NumberRegister[T], Generic[T]):
-    """Signed 64-bit register."""
-
-    datatype = ModbusClientMixin.DATATYPE.INT64
-
-    def __init__(
-        self,
-        unit: UnitType,
-        gain: int,
-        register: int,
-        *,
-        writeable: bool = False,
-        target_device: TargetDevice = TargetDevice.SUN2000,
-    ) -> None:
-        """Create Signed 64-bit register."""
-        super().__init__(
-            unit=unit,
-            gain=gain,
-            register=register,
-            length=4,
-            writeable=writeable,
-            invalid_value=2**63 - 1,
-            target_device=target_device,
-        )
-
-
-class I32AbsoluteValueRegister(I32Register):
-    """Signed 32-bit register, converted into the equivalent absolute number.
-
-    Use case: for registers of which the value should always be interpreted
-     as a positive number, but are (in some cases) being reported as a
-     negative number.
-
-    cfr. https://github.com/wlcrs/huawei_solar/issues/54
-
-    """
-
-    def __init__(
-        self,
-        unit: UnitType,
-        gain: int,
-        register: int,
-        *,
-        writeable: bool = False,
-        target_device: TargetDevice = TargetDevice.SUN2000,
-    ) -> None:
-        """Create Absolute value 32-bit register."""
-        super().__init__(
-            unit,
-            gain,
-            register,
-            writeable=writeable,
-            target_device=target_device,
-        )
-
-    def decode(self, registers: list[int]) -> int | None:
-        """Decode 32-bit signed integer into absolute value."""
-        value = super().decode(registers)
-        return abs(value) if value is not None else None
-
-
-def bitfield_decoder(definition: dict[int, T], bitfield: int) -> list[T]:
+def bitfield_decoder(definition: dict[int, T], bitfield: int) -> list[Any]:
     """Decode a bitfield into a list of statuses."""
-    result = []
+    result: list[Any] = []
     for key, value in definition.items():
         if isinstance(value, rv.OnOffBit):
             result.append(value.on_value if key & bitfield else value.off_value)
@@ -376,488 +38,12 @@ def bitfield_decoder(definition: dict[int, T], bitfield: int) -> list[T]:
     return result
 
 
-class TimestampRegister(U32Register[datetime]):
-    """Timestamp register."""
-
-    def __init__(
-        self,
-        register: int,
-        *,
-        writeable: bool = False,
-        target_device: TargetDevice = TargetDevice.SUN2000,
-    ) -> None:
-        """Create timestamp register."""
-        super().__init__(
-            unit=None,
-            gain=1,
-            register=register,
-            writeable=writeable,
-            target_device=target_device,
-        )
-
-    def decode(self, registers: list[int]) -> datetime | None:
-        """Decode timestamp register."""
-        value = super().decode(registers)
-        if value is None:
-            return None
-
-        assert isinstance(value, int)
-
-        # I was unable to come up with a good way of determining in which time
-        # zone this value is. So we return it without one.
-        return datetime.fromtimestamp(value)  # noqa: DTZ006
-
-
-@dataclass
-class LG_RESU_TimeOfUsePeriod:  # noqa: N801
-    """Time of use period of LG RESU."""
-
-    start_time: int  # minutes since midnight
-    end_time: int  # minutes since midnight
-    electricity_price: float
-
-
-class ChargeFlag(IntEnum):
-    """Charge Flag."""
-
-    CHARGE = 0
-    DISCHARGE = 1
-
-
-@dataclass
-class HUAWEI_LUNA2000_TimeOfUsePeriod:  # noqa: N801
-    """Time of use period of Huawei LUNA2000."""
-
-    start_time: int  # minutes since midnight
-    end_time: int  # minutes since midnight
-    charge_flag: ChargeFlag
-    days_effective: tuple[
-        bool,
-        bool,
-        bool,
-        bool,
-        bool,
-        bool,
-        bool,
-    ]  # Valid on days Sunday to Saturday
-
-
-LG_RESU_TOU_PERIODS = 10
-
-
-class LG_RESU_TimeOfUseRegisters(RegisterDefinition[list[LG_RESU_TimeOfUsePeriod]]):  # noqa: N801
-    """Time of use register."""
-
-    def decode(self, registers: list[int]) -> list[LG_RESU_TimeOfUsePeriod]:
-        """Decode time of use register."""
-        number_of_periods = cast(
-            "int",
-            ModbusClientMixin.convert_from_registers(registers[0:1], ModbusClientMixin.DATATYPE.UINT16),
-        )
-        assert number_of_periods <= LG_RESU_TOU_PERIODS
-
-        def _decode_lg_resu_tou_period(r: list[int]) -> LG_RESU_TimeOfUsePeriod:
-            start_time, end_time, electricity_price = struct.unpack(">HHI", registers_to_bytearray(r))
-            return LG_RESU_TimeOfUsePeriod(
-                start_time,
-                end_time,
-                electricity_price / 1000,
-            )
-
-        return [
-            _decode_lg_resu_tou_period(registers[1 + idx * 4 : 1 + ((idx + 1) * 4)]) for idx in range(number_of_periods)
-        ]
-
-    def _validate(
-        self,
-        data: list[LG_RESU_TimeOfUsePeriod],
-    ) -> None:
-        """Validate data type."""
-        if len(data) == 0:
-            return  # nothing to check
-
-        # Sanity check of each period individually
-        for tou_period in data:
-            if tou_period.start_time < 0 or tou_period.end_time < 0:
-                msg = "TOU period is invalid (Below zero)"
-                raise TimeOfUsePeriodsException(msg)
-            if tou_period.start_time > 24 * 60 or tou_period.end_time > 24 * 60:
-                msg = "TOU period is invalid (Spans over more than one day)"
-                raise TimeOfUsePeriodsException(
-                    msg,
-                )
-            if tou_period.start_time >= tou_period.end_time:
-                msg = "TOU period is invalid (start-time is greater than end-time)"
-                raise TimeOfUsePeriodsException(
-                    msg,
-                )
-
-        # make a copy of the data to sort
-        sorted_periods: list[LG_RESU_TimeOfUsePeriod] = data.copy()
-
-        sorted_periods.sort(key=lambda a: a.start_time)
-
-        for period_idx in range(1, len(sorted_periods)):
-            current_period = sorted_periods[period_idx]
-            prev_period = sorted_periods[period_idx - 1]
-            if (
-                prev_period.start_time <= current_period.start_time < prev_period.end_time
-                or prev_period.start_time < current_period.end_time <= prev_period.end_time
-            ):
-                msg = "TOU periods are overlapping"
-                raise TimeOfUsePeriodsException(msg)
-
-    def encode(self, data: list[LG_RESU_TimeOfUsePeriod]) -> list[int]:
-        """Encode Time Of Use Period registers."""
-        self._validate(data)
-
-        assert len(data) <= LG_RESU_TOU_PERIODS
-
-        b = bytearray(43 * 2)
-        struct.pack_into(">H", b, 0, len(data))
-
-        for idx, period in enumerate(data):
-            struct.pack_into(
-                ">HHI",
-                b,
-                2 * (1 + idx * 4),
-                period.start_time,
-                period.end_time,
-                int(period.electricity_price * 1000),
-            )
-
-        return bytearray_to_registers(b)
-
-
-HUAWEI_LUNA2000_TOU_PERIODS = 14
-
-
-def registers_to_bytearray(registers: list[int]) -> bytearray:
-    """Convert registers to bytes."""
-    b = bytearray()
-    for x in registers:
-        b.extend(x.to_bytes(2, "big"))
-
-    return b
-
-
-def bytearray_to_registers(data: bytearray) -> list[int]:
-    """Convert bytes to registers."""
-    assert len(data) % 2 == 0
-    return [int.from_bytes(data[i : i + 2], "big") for i in range(0, len(data), 2)]
-
-
-class HUAWEI_LUNA2000_TimeOfUseRegisters(RegisterDefinition[list[HUAWEI_LUNA2000_TimeOfUsePeriod]]):  # noqa: N801
-    """Time of use register."""
-
-    def decode(self, registers: list[int]) -> list[HUAWEI_LUNA2000_TimeOfUsePeriod]:
-        """Decode time of use register."""
-        number_of_periods = cast(
-            "int",
-            ModbusClientMixin.convert_from_registers(registers[0:1], ModbusClientMixin.DATATYPE.UINT16),
-        )
-        assert number_of_periods <= HUAWEI_LUNA2000_TOU_PERIODS
-
-        def _days_effective_parser(value: int) -> tuple[bool, bool, bool, bool, bool, bool, bool]:
-            result = []
-            mask = 0x1
-            for _ in range(7):
-                result.append((value & mask) != 0)
-                mask = mask << 1
-
-            return tuple(result)
-
-        def _decode_huawei_luna2000_tou_period(r: list[int]) -> HUAWEI_LUNA2000_TimeOfUsePeriod:
-            start_time, end_time, charge, days_effective = struct.unpack(">HHBB", registers_to_bytearray(r))
-
-            return HUAWEI_LUNA2000_TimeOfUsePeriod(
-                start_time,
-                end_time,
-                ChargeFlag(charge),
-                _days_effective_parser(days_effective),
-            )
-
-        periods = [
-            _decode_huawei_luna2000_tou_period(registers[1 + idx * 3 : 1 + ((idx + 1) * 3)])
-            for idx in range(HUAWEI_LUNA2000_TOU_PERIODS)
-        ]
-
-        return periods[:number_of_periods]
-
-    def _validate(
-        self,
-        data: list[HUAWEI_LUNA2000_TimeOfUsePeriod],
-    ) -> None:
-        """Validate data type."""
-        if len(data) == 0:
-            return  # nothing to check
-
-        # Sanity check of each period individually
-        for tou_period in data:
-            if not isinstance(tou_period, HUAWEI_LUNA2000_TimeOfUsePeriod):
-                msg = "TOU period is of an unexpected type"
-                raise TimeOfUsePeriodsException(msg)
-            if tou_period.start_time < 0 or tou_period.end_time < 0:
-                msg = "TOU period is invalid (Below zero)"
-                raise TimeOfUsePeriodsException(msg)
-            if tou_period.start_time > 24 * 60 or tou_period.end_time > 24 * 60:
-                msg = "TOU period is invalid (Spans over more than one day)"
-                raise TimeOfUsePeriodsException(
-                    msg,
-                )
-            if tou_period.start_time >= tou_period.end_time:
-                msg = "TOU period is invalid (start-time is greater than end-time)"
-                raise TimeOfUsePeriodsException(
-                    msg,
-                )
-
-        for day_idx in range(7):
-            # find all ranges that are valid for the given day
-            active_periods: list[HUAWEI_LUNA2000_TimeOfUsePeriod] = list(
-                filter(lambda period: period.days_effective[day_idx], data),
-            )
-
-            active_periods.sort(key=lambda a: a.start_time)
-
-            for period_idx in range(1, len(active_periods)):
-                current_period = active_periods[period_idx]
-                prev_period = active_periods[period_idx - 1]
-                if (
-                    prev_period.start_time <= current_period.start_time < prev_period.end_time
-                    or prev_period.start_time < current_period.end_time <= prev_period.end_time
-                ):
-                    msg = "TOU periods are overlapping"
-                    raise TimeOfUsePeriodsException(msg)
-
-    def encode(
-        self,
-        data: list[HUAWEI_LUNA2000_TimeOfUsePeriod],
-    ) -> list[int]:
-        """Encode Time Of Use Period registers."""
-        self._validate(data)
-
-        assert len(data) <= HUAWEI_LUNA2000_TOU_PERIODS
-
-        b = bytearray(43 * 2)
-        struct.pack_into(">H", b, 0, len(data))
-
-        def _days_effective_builder(days_tuple: tuple[bool, bool, bool, bool, bool, bool, bool]) -> int:
-            result = 0
-            mask = 0x1
-            for i in range(7):
-                if days_tuple[i]:
-                    result += mask
-                mask = mask << 1
-
-            return result
-
-        for idx, period in enumerate(data):
-            struct.pack_into(
-                ">HHBB",
-                b,
-                2 * (1 + idx * 3),
-                period.start_time,
-                period.end_time,
-                int(period.charge_flag),
-                _days_effective_builder(period.days_effective),
-            )
-
-        return bytearray_to_registers(b)
-
-
-@dataclass
-class ChargeDischargePeriod:
-    """Charge or Discharge Period."""
-
-    start_time: int  # minutes since midnight
-    end_time: int  # minutes since midnight
-    power: int  # power in watts
-
-
-CHARGE_DISCHARGE_PERIODS = 10
-
-
-class ChargeDischargePeriodRegisters(RegisterDefinition[list[ChargeDischargePeriod]]):
-    """Charge or discharge period registers."""
-
-    def decode(self, registers: list[int]) -> list[ChargeDischargePeriod]:
-        """Decode ChargeDischargePeriodRegisters."""
-        number_of_periods = cast(
-            "int",
-            ModbusClientMixin.convert_from_registers(registers[0:1], ModbusClientMixin.DATATYPE.UINT16),
-        )
-        assert number_of_periods <= CHARGE_DISCHARGE_PERIODS
-
-        def _decode_charge_discharge_period(r: list[int]) -> ChargeDischargePeriod:
-            start_time, end_time, power = struct.unpack(">HHI", registers_to_bytearray(r))
-            return ChargeDischargePeriod(start_time, end_time, power)
-
-        periods = [
-            _decode_charge_discharge_period(registers[1 + idx * 3 : 1 + ((idx + 1) * 3)])
-            for idx in range(number_of_periods)
-        ]
-
-        return periods[:number_of_periods]
-
-    def encode(self, data: list[ChargeDischargePeriod]) -> list[int]:
-        """Encode ChargeDischargePeriodRegisters."""
-        assert len(data) <= CHARGE_DISCHARGE_PERIODS
-
-        b = bytearray()
-        b.extend(struct.pack(">H", len(data)))
-
-        for period in data:
-            b.extend(struct.pack(">HHI", period.start_time, period.end_time, period.power))
-
-        # pad with empty periods
-        for _ in range(len(data), CHARGE_DISCHARGE_PERIODS):
-            b.extend(struct.pack(">HHI", 0, 0, 0))
-
-        return bytearray_to_registers(b)
-
-
-@dataclass
-class PeakSettingPeriod:
-    """Peak Setting Period."""
-
-    start_time: int  # minutes since midnight
-    end_time: int  # minutes since midnight
-    power: int  # power in watts
-    days_effective: tuple[
-        bool,
-        bool,
-        bool,
-        bool,
-        bool,
-        bool,
-        bool,
-    ]  # Valid on days Sunday to
-
-
-PEAK_SETTING_PERIODS = 14
-
-
-def _days_effective_builder(days_tuple: tuple[bool, bool, bool, bool, bool, bool, bool]) -> int:
-    result = 0
-    mask = 0x1
-    for i in range(7):
-        if days_tuple[i]:
-            result += mask
-        mask = mask << 1
-
-    return result
-
-
-def _days_effective_parser(value: int) -> tuple[bool, bool, bool, bool, bool, bool, bool]:
-    result = []
-    mask = 0x1
-    for _ in range(7):
-        result.append((value & mask) != 0)
-        mask = mask << 1
-
-    return tuple(result)
-
-
-class PeakSettingPeriodRegisters(RegisterDefinition[list[PeakSettingPeriod]]):
-    """Peak Setting Period registers."""
-
-    def decode(self, registers: list[int]) -> list[PeakSettingPeriod]:
-        """Decode PeakSettingPeriodRegisters."""
-        number_of_periods = cast(
-            "int",
-            ModbusClientMixin.convert_from_registers(registers[0:1], ModbusClientMixin.DATATYPE.UINT16),
-        )
-
-        # Safety check
-        number_of_periods = min(number_of_periods, PEAK_SETTING_PERIODS)
-
-        b = registers_to_bytearray(registers[1:])
-        decoder = struct.Struct(">HHIB")
-
-        periods = []
-        for idx in range(number_of_periods):
-            start_time, end_time, peak_value, week_value = decoder.unpack(
-                b[idx * decoder.size : (idx + 1) * decoder.size],
-            )
-
-            if start_time != end_time and week_value != 0:
-                periods.append(
-                    PeakSettingPeriod(
-                        start_time,
-                        end_time,
-                        peak_value,
-                        _days_effective_parser(week_value),
-                    ),
-                )
-
-        return periods[:number_of_periods]
-
-    def _validate(self, data: list[PeakSettingPeriod]) -> None:
-        for day_idx in range(7):
-            # find all ranges that are valid for the given day
-            active_periods: list[PeakSettingPeriod] = list(
-                filter(lambda period: period.days_effective[day_idx], data),
-            )
-
-            if not active_periods:
-                msg = "All days of the week need to be covered"
-                raise PeakPeriodsValidationError(
-                    msg,
-                )
-
-            # require full day to be covered
-            active_periods.sort(key=lambda a: a.start_time)
-
-            if active_periods[0].start_time != 0:
-                msg = "Every day must be covered from 00:00"
-                raise PeakPeriodsValidationError(msg)
-
-            for period_idx in range(1, len(active_periods)):
-                current_period = active_periods[period_idx]
-                prev_period = active_periods[period_idx - 1]
-                if current_period.start_time not in (
-                    prev_period.end_time,
-                    prev_period.end_time + 1,
-                ):
-                    msg = "All moments of each day need to be covered"
-                    raise PeakPeriodsValidationError(
-                        msg,
-                    )
-
-            if active_periods[-1].end_time not in ((24 * 60) - 1, 24 * 60):
-                msg = "Every day must be covered until 23:59"
-                raise PeakPeriodsValidationError(
-                    msg,
-                )
-
-    def encode(self, data: list[PeakSettingPeriod]) -> list[int]:
-        """Encode PeakSettingPeriodRegisters."""
-        if len(data) > PEAK_SETTING_PERIODS:
-            data = data[:PEAK_SETTING_PERIODS]
-
-        result = bytearray()
-        result.extend(struct.pack(">H", len(data)))
-
-        for period in data:
-            result.extend(
-                struct.pack(
-                    ">HHIB",
-                    period.start_time,
-                    period.end_time,
-                    period.power,
-                    _days_effective_builder(period.days_effective),
-                ),
-            )
-
-        # pad with empty periods
-        for _ in range(len(data), PEAK_SETTING_PERIODS):
-            result.extend(struct.pack(">HHIB", 0, 0, 0, 0))
-
-        return bytearray_to_registers(result)
-
-
 REGISTERS: dict[str, RegisterDefinition] = {
-    rn.MODEL_NAME: StringRegister(30000, 15, target_device=TargetDevice.SUN2000 | TargetDevice.EMMA),
+    rn.MODEL_NAME: StringRegister(
+        30000,
+        15,
+        target_device=TargetDevice.SUN2000 | TargetDevice.EMMA,
+    ),
     rn.SERIAL_NUMBER: StringRegister(
         30015,
         10,
@@ -865,7 +51,11 @@ REGISTERS: dict[str, RegisterDefinition] = {
     ),
     rn.PN: StringRegister(30025, 10),
     rn.FIRMWARE_VERSION: StringRegister(30035, 15),
-    rn.SOFTWARE_VERSION: StringRegister(30050, 15, target_device=TargetDevice.SUN2000 | TargetDevice.SDONGLE),
+    rn.SOFTWARE_VERSION: StringRegister(
+        30050,
+        15,
+        target_device=TargetDevice.SUN2000 | TargetDevice.SDONGLE,
+    ),
     rn.PROTOCOL_VERSION_MODBUS: U32Register(None, 1, 30068),
     rn.MODEL_ID: U16Register(None, 1, 30070),
     rn.NB_PV_STRINGS: U16Register(None, 1, 30071),
@@ -1148,7 +338,7 @@ PV_REGISTERS = {
 
 REGISTERS.update(PV_REGISTERS)
 
-BATTERY_REGISTERS = {
+BATTERY_REGISTERS: dict[str, RegisterDefinition] = {
     rn.STORAGE_UNIT_1_RUNNING_STATUS: U16Register(rv.StorageStatus, 1, 37000),
     rn.STORAGE_UNIT_1_CHARGE_DISCHARGE_POWER: I32Register("W", 1, 37001),
     rn.STORAGE_UNIT_1_BUS_VOLTAGE: U16Register("V", 10, 37003),
@@ -1269,8 +459,8 @@ BATTERY_REGISTERS = {
     rn.STORAGE_UNIT_1_PRODUCT_MODEL: U16Register(rv.StorageProductModel, 1, 47000),
     rn.STORAGE_WORKING_MODE_A: I16Register(rv.StorageWorkingModesA, 1, 47004),
     rn.STORAGE_TIME_OF_USE_PRICE: I16Register(bool, 1, 47027),
-    rn.STORAGE_LG_RESU_TIME_OF_USE_PRICE_PERIODS: LG_RESU_TimeOfUseRegisters(47028, 41, writeable=True),
-    rn.STORAGE_HUAWEI_LUNA2000_TIME_OF_USE_PRICE_PERIODS: HUAWEI_LUNA2000_TimeOfUseRegisters(47028, 41, writeable=True),
+    rn.STORAGE_LG_RESU_TIME_OF_USE_PRICE_PERIODS: LG_RESU_TimeOfUseRegisters(47028, writeable=True),
+    rn.STORAGE_HUAWEI_LUNA2000_TIME_OF_USE_PRICE_PERIODS: HUAWEI_LUNA2000_TimeOfUseRegisters(47028, writeable=True),
     rn.STORAGE_LCOE: U32Register(None, 1000, 47069),
     rn.STORAGE_MAXIMUM_CHARGING_POWER: U32Register("W", 1, 47075, writeable=True),
     rn.STORAGE_MAXIMUM_DISCHARGING_POWER: U32Register("W", 1, 47077, writeable=True),
@@ -1320,7 +510,6 @@ BATTERY_REGISTERS = {
     rn.STORAGE_UNIT_2_NO: U16Register(None, 1, 47108),
     rn.STORAGE_FIXED_CHARGING_AND_DISCHARGING_PERIODS: ChargeDischargePeriodRegisters(
         47200,
-        41,
         writeable=True,
     ),
     rn.STORAGE_POWER_OF_CHARGE_FROM_GRID: U32Register("W", 1, 47242, writeable=True),
@@ -1340,12 +529,10 @@ BATTERY_REGISTERS = {
     rn.STORAGE_FORCIBLE_DISCHARGE_POWER: U32Register(None, 1, 47249, writeable=True),
     rn.STORAGE_LG_RESU_TIME_OF_USE_CHARGING_AND_DISCHARGING_PERIODS: LG_RESU_TimeOfUseRegisters(
         47255,
-        43,
         writeable=True,
     ),
     rn.STORAGE_HUAWEI_LUNA2000_TIME_OF_USE_CHARGING_AND_DISCHARGING_PERIODS: HUAWEI_LUNA2000_TimeOfUseRegisters(
         47255,
-        43,
         writeable=True,
     ),
     rn.STORAGE_EXCESS_PV_ENERGY_USE_IN_TOU: U16Register(
@@ -1392,7 +579,7 @@ BATTERY_REGISTERS = {
 }
 REGISTERS.update(BATTERY_REGISTERS)
 
-CAPACITY_CONTROL_REGISTERS = {
+CAPACITY_CONTROL_REGISTERS: dict[str, RegisterDefinition] = {
     # We must check if we can read from these registers to know if this feature is supported
     # by the inverter/battery firmware
     rn.STORAGE_CAPACITY_CONTROL_MODE: U16Register(
@@ -1409,14 +596,13 @@ CAPACITY_CONTROL_REGISTERS = {
     ),
     rn.STORAGE_CAPACITY_CONTROL_PERIODS: PeakSettingPeriodRegisters(
         47956,
-        64,
         writeable=True,
     ),
 }
 
 REGISTERS.update(CAPACITY_CONTROL_REGISTERS)
 
-EMMA_REGISTERS = {
+EMMA_REGISTERS: dict[str, RegisterDefinition] = {
     rn.EMMA_SOFTWARE_VERSION: StringRegister(30035, 15, target_device=TargetDevice.EMMA),
     rn.EMMA_MODEL: StringRegister(30222, 20, target_device=TargetDevice.EMMA),
     rn.INVERTER_TOTAL_ABSORBED_ENERGY: U64Register("kWh", 100, 30302, target_device=TargetDevice.EMMA),

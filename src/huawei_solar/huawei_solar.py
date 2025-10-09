@@ -3,7 +3,7 @@
 import logging
 import struct
 from dataclasses import dataclass
-from typing import Any, Literal, NamedTuple, Self, TypeVar, Unpack, cast
+from typing import Any, Literal, Self, TypeVar, Unpack
 
 import tenacity
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, stop_after_delay, wait_exponential
@@ -25,7 +25,6 @@ from .exceptions import (
     ConnectionException,
     ConnectionInterruptedException,
     ReadException,
-    UnexpectedResponseContent,
     WriteException,
 )
 from .modbus import (
@@ -36,18 +35,13 @@ from .modbus import (
     StartFileUploadPDU,
     UploadFileFramePDU,
 )
-from .registers import REGISTERS, RegisterDefinition
+from .register_definitions.base import RegisterDefinition, Result
+from .registers import REGISTERS
 
 LOGGER = logging.getLogger(__name__)
 
+T = TypeVar("T")
 RT = TypeVar("RT")
-
-
-class Result(NamedTuple):
-    """Modbus register value."""
-
-    value: Any
-    unit: str | None
 
 
 DEFAULT_TCP_PORT = 502
@@ -174,7 +168,7 @@ class AsyncHuaweiSolar:
             LOGGER.exception("Aborting client creation due to error")
 
             try:
-                await client.close()
+                await client.disconnect()
             except Exception:
                 LOGGER.exception("Error occurred while closing client. Ignoring")
 
@@ -204,7 +198,7 @@ class AsyncHuaweiSolar:
             LOGGER.exception("Aborting client creation due to error")
 
             try:
-                await client.close()
+                await client.disconnect()
             except Exception:
                 LOGGER.exception("Error occurred while closing client. Ignoring")
 
@@ -214,7 +208,7 @@ class AsyncHuaweiSolar:
 
     async def stop(self) -> None:
         """Stop the modbus client."""
-        await self._client.close()
+        await self._client.disconnect()
 
     @property
     def slave_id(self) -> int:
@@ -227,49 +221,32 @@ class AsyncHuaweiSolar:
             return self
         return AsyncHuaweiSolar(self._client.for_unit_id(slave_id))
 
-    async def _decode_response(
-        self,
-        reg: RegisterDefinition,
-        registers: list[int],
-    ) -> Result:
-        """Decode a modbus register and puts it into a Result object."""
-        result = reg.decode(registers)
-
-        if not hasattr(reg, "unit") or callable(reg.unit) or isinstance(reg.unit, dict):
-            return Result(result, None)
-        return Result(result, reg.unit)
-
     async def get(self, name: str) -> Result:
         """Get named register from device."""
         return (await self.get_multiple([name]))[0]
 
-    async def get_multiple(self, names: list[str], *, slave_id: int | None = None) -> list[Result]:
-        """Read multiple registers at the same time.
-
-        This is only possible if the registers are consecutively available in the
-        inverters' memory.
-        """
-        if len(names) == 0:
-            msg = "Expected at least one register name"
+    def _get_register_definitions(self, names: list[str]) -> list[RegisterDefinition]:
+        """Get register definitions by name."""
+        unknown_register_names = set(names) - REGISTERS.keys()
+        if unknown_register_names:
+            msg = f"Did not recognize register names: {', '.join(unknown_register_names)}"
             raise ValueError(msg)
 
-        registers = list(map(REGISTERS.get, names))
+        return [REGISTERS[name] for name in names]
 
-        if None in registers:
-            missing_registers = set(names) - set(REGISTERS.keys())
-            if missing_registers:
-                msg = f"Did not recognize register names: {', '.join(missing_registers)}"
-                raise ValueError(msg)
-            msg = "Did not recognize all register names"
+    def _validate_registers_readable(self, names: list[str], registers: list[RegisterDefinition]) -> None:
+        """Validate whether the requested registers are readable."""
+        unreadable_register_names = [
+            register_name for register, register_name in zip(registers, names, strict=False) if not register.readable
+        ]
+        if unreadable_register_names:
+            msg = f"Trying to read unreadable registers: {', '.join(unreadable_register_names)}"
             raise ValueError(msg)
-        registers = cast("list[RegisterDefinition]", registers)
 
-        for register, register_name in zip(registers, names, strict=False):
-            if not register.readable:
-                msg = f"Trying to read unreadable register {register_name}"
-                raise ValueError(msg)
-
-        for idx in range(1, len(names)):
+    def _construct_struct_format(self, registers: list[RegisterDefinition]) -> str:
+        """Construct a struct format to interpret the registers content with."""
+        struct_format = registers[0].format
+        for idx in range(1, len(registers)):
             if registers[idx - 1].register + registers[idx - 1].length > registers[idx].register:
                 msg = (
                     f"Requested registers must be in monotonically increasing order, "
@@ -283,27 +260,49 @@ class AsyncHuaweiSolar:
                 msg = "Gap between requested registers is too large. Split it in two requests"
                 raise ValueError(msg)
 
-        total_length = registers[-1].register + registers[-1].length - registers[0].register
+            struct_format += f"{'x' * 2 * register_distance}{registers[idx].format}"
 
-        response_registers = await self._read_registers(registers[0].register, total_length, slave_id=slave_id)
+        return struct_format
 
-        start_register = registers[0].register
+    def _decode_response_tuple(
+        self,
+        registers: list[RegisterDefinition],
+        response: tuple[Any, ...],
+    ) -> list[Result]:
+        """Decode response tuple."""
+        result: list[Result] = []
+        tuple_idx = 0
+        for register in registers:
+            register_values = register.decode(response[tuple_idx : tuple_idx + register.format_size])
+            result.append(register_values)
+            tuple_idx += register.format_size
 
-        return [
-            await self._decode_response(
-                reg,
-                response_registers[reg.register - start_register : reg.register - start_register + reg.length],
-            )
-            for reg in registers
-        ]
+        return result
+
+    async def get_multiple(self, names: list[str], *, slave_id: int | None = None) -> list[Result]:
+        """Read multiple registers at the same time.
+
+        This is only possible if the registers are consecutively available in the
+        inverters' memory.
+        """
+        if len(names) == 0:
+            msg = "Expected at least one register name"
+            raise ValueError(msg)
+
+        registers = self._get_register_definitions(names)
+        self._validate_registers_readable(names, registers)
+        struct_format = self._construct_struct_format(registers)
+        response_tuple = await self._read_registers(registers[0].register, struct_format, slave_id=slave_id)
+
+        return self._decode_response_tuple(registers, response_tuple)
 
     async def _read_registers(
         self,
-        register: int,
-        length: int,
+        start_address: int,
+        struct_format: str,
         *,
         slave_id: int | None = None,
-    ) -> list[int]:
+    ) -> tuple[Any, ...]:
         """Async read register from device.
 
         The device needs a bit of time between the connection and the first request
@@ -314,54 +313,20 @@ class AsyncHuaweiSolar:
 
         It seems to only support connections from one device at the same time.
         """
+        format_struct = struct.Struct(f">{struct_format}")
         LOGGER.debug(
             "Reading register %d with length %d from server %s",
-            register,
-            length,
+            start_address,
+            format_struct.size,
             self._client.unit_id,
         )
 
         client = self._client.for_unit_id(slave_id) if slave_id is not None else self._client
 
-        try:
-            response_registers = await client.read_holding_registers(
-                register,
-                quantity=length,
-            )
-        # trigger a backoff if we get a SlaveBusy-exception
-        except (ServerDeviceBusyError, ServerDeviceFailureError) as e:
-            LOGGER.debug(
-                "Got a %s while reading %d (length %d) from server %d",
-                type(e).__name__,
-                register,
-                length,
-                self._client.unit_id,
-            )
-            msg = f"Got a {type(e).__name__}  while reading from register {register} with length {length}"
-            raise ReadException(msg) from e
-        except ModbusResponseError as e:
-            LOGGER.exception(
-                "Got a ModbusResponseError while reading %d (length %d) from server %d",
-                register,
-                length,
-                self._client.unit_id,
-            )
-            msg = f"Got error while reading from register {register} with length {length}: {e}"
-            raise ReadException(msg, modbus_exception_code=e.error_code) from e
-
-        except ModbusConnectionError as err:
-            message = "Could not read register value, has another device interrupted the connection?"
-            LOGGER.exception(message)
-            raise ConnectionInterruptedException(message) from err
-        else:
-            if len(response_registers) != length:
-                msg = (
-                    f"Mismatch between number of requested registers ({length}) "
-                    f"and number of received registers ({len(response_registers)})"
-                )
-                raise UnexpectedResponseContent(msg)
-
-            return response_registers
+        return await client.read_struct_format(
+            start_address,
+            format_struct=format_struct,
+        )
 
     async def _read_device_identifier_objects(
         self,
@@ -511,58 +476,65 @@ class AsyncHuaweiSolar:
             msg = "Register is not writable"
             raise WriteException(msg)
 
-        registers = reg.encode(value)
+        return await self._write_registers(reg, reg.encode(value))
 
-        if len(registers) != reg.length:
+    def _validate_data_to_write(self, register: RegisterDefinition, values: tuple[Any, ...]) -> None:
+        """Validate if the data to write is valid."""
+        encoded_value_to_write = struct.pack(f">{register.format}", *values)
+        if len(encoded_value_to_write) != register.length * 2:  # 2 bytes per register
             msg = "Wrong number of registers to write"
             raise WriteException(msg)
 
-        return await self._write_registers(
-            reg.register,
-            registers,
-        )
-
     async def _write_registers(
         self,
-        register: int,
-        value: list[int],
+        register: RegisterDefinition,
+        values: tuple[Any, ...],
     ) -> bool:
         """Async write register to device."""
+        self._validate_data_to_write(register, values)
         try:
-            LOGGER.debug(
-                "Writing to %d: %s on server %d",
-                register,
-                value,
-                self._client.unit_id,
-            )
-
-            if len(value) == 1:
-                response = await self._client.write_single_register(
-                    register,
-                    value[0],
+            if register.length == 1:
+                LOGGER.debug(
+                    "Writing to %d: single value '%s' on server %d",
+                    register.register,
+                    values[0],
+                    self._client.unit_id,
                 )
-                return response == value[0]
 
-            number_of_registers_written = await self._client.write_multiple_registers(
-                register,
-                value,
-            )
-            return number_of_registers_written == len(value)
+                response = await self._client.write_single_register(register.register, values[0])
+
+                success = response == values[0]
+            else:
+                LOGGER.debug(
+                    "Writing to %d: values '%s' on server %d",
+                    register.register,
+                    values,
+                    self._client.unit_id,
+                )
+
+                registers_written = await self._client.write_struct_format(
+                    register.register,
+                    values,
+                    format_struct=f">{register.format}",
+                )
+
+                success = registers_written == register.length
 
         except PermissionDeniedError:
             raise
         except IllegalDataAddressError as e:
             msg = (
-                f"Failed to write value {value} to register {register} due to IllegalDataAddress. "
+                f"Failed to write value {values} to register {register} due to IllegalDataAddress. "
                 "Assuming permission problem."
             )
             raise PermissionDeniedError(PermissionDeniedError.error_code, e.function_code) from e
         except ModbusResponseError as e:
-            msg = f"Failed to write value {value} to register {register}: {e.error_code:02x}"
+            msg = f"Failed to write value {values} to register {register}: {e.error_code:02x}"
             raise WriteException(msg, modbus_exception_code=e.error_code) from e
         except ModbusConnectionError as err:
             LOGGER.exception("Failed to connect to device, is the host correct?")
             raise ConnectionInterruptedException(err) from err
+        return success
 
     async def login(self, username: str, password: str) -> bool:
         """Login onto the inverter."""

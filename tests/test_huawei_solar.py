@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 import pytest
-from pymodbus.pdu.register_message import ReadHoldingRegistersResponse
 
 import huawei_solar.register_names as rn
 import huawei_solar.register_values as rv

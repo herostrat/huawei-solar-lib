@@ -2,7 +2,6 @@ import asyncio
 from typing import Any
 
 import pytest
-from pymodbus.pdu.register_message import ReadHoldingRegistersResponse
 
 from huawei_solar.bridge import HuaweiSolarProductInfo, HuaweiSUN2000Bridge
 from huawei_solar.huawei_solar import AsyncHuaweiSolar
