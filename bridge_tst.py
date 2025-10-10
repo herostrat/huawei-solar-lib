@@ -5,7 +5,13 @@
 import asyncio
 import logging
 
-from huawei_solar import HuaweiSUN2000Bridge, create_tcp_bridge
+from huawei_solar import (
+    SUN2000Device,
+    create_device_instance,
+    create_tcp_client,
+    get_device_identifiers,
+    get_device_infos,
+)
 from huawei_solar import register_names as rn
 
 loop = asyncio.new_event_loop()
@@ -15,16 +21,18 @@ logging.basicConfig(level=logging.DEBUG)
 
 async def test():
     """Run test."""
-    bridge = await create_tcp_bridge(host="192.168.1.1", port=503)
+    client = create_tcp_client(host="192.168.1.1", port=503)
 
-    print(await bridge.client.get_device_identifiers())
-    print(await bridge.client.get_device_infos())
+    print(await get_device_identifiers(client))
+    print(await get_device_infos(client))
 
-    assert isinstance(bridge, HuaweiSUN2000Bridge)
+    device = await create_device_instance(client)
+
+    assert isinstance(device, SUN2000Device)
     # print(await bridge.has_write_permission())
-    await bridge.login("installer", "00000a")
+    await device.login("installer", "00000a")
     print(
-        await bridge.batch_update(
+        await device.batch_update(
             [
                 rn.ACTIVE_POWER_FIXED_VALUE_DERATING,
                 rn.ACTIVE_POWER_PERCENTAGE_DERATING,
@@ -34,12 +42,12 @@ async def test():
             ],
         )
     )
-    print(await bridge.client.get(rn.ACTIVE_POWER_FIXED_VALUE_DERATING))
-    print(await bridge.client.get(rn.ACTIVE_POWER_PERCENTAGE_DERATING))
+    print(await device.get(rn.ACTIVE_POWER_FIXED_VALUE_DERATING))
+    print(await device.get(rn.ACTIVE_POWER_PERCENTAGE_DERATING))
 
-    print(await bridge.client.get(rn.STORAGE_CAPACITY_CONTROL_MODE))
-    print(await bridge.client.get(rn.STORAGE_CAPACITY_CONTROL_SOC_PEAK_SHAVING))
-    print(await bridge.client.get(rn.STORAGE_CAPACITY_CONTROL_PERIODS))
+    print(await device.get(rn.STORAGE_CAPACITY_CONTROL_MODE))
+    print(await device.get(rn.STORAGE_CAPACITY_CONTROL_SOC_PEAK_SHAVING))
+    print(await device.get(rn.STORAGE_CAPACITY_CONTROL_PERIODS))
 
     # i = 0
     # while i < 100:
@@ -51,10 +59,10 @@ async def test():
 
     #     await asyncio.sleep(2.5)
     #     i = i+1
-    print(await bridge.get_optimizer_system_information_data())
-    print(await bridge.get_latest_optimizer_history_data())
+    print(await device.get_optimizer_system_information_data())
+    print(await device.get_latest_optimizer_history_data())
 
-    await bridge.stop()
+    await device.stop()
 
 
 loop.run_until_complete(test())

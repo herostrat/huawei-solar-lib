@@ -19,6 +19,7 @@ class TargetDevice(Flag):
 
     SUN2000 = auto()
     EMMA = auto()
+    SCHARGER = auto()
     SDONGLE = auto()
     SMARTLOGGER = auto()
 

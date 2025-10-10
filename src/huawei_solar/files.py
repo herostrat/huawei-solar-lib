@@ -1,6 +1,5 @@
 """File definitions from the Huawei inverter."""
 
-import binascii
 import logging
 import struct
 from dataclasses import dataclass
@@ -8,6 +7,7 @@ from datetime import datetime
 from enum import IntEnum
 
 from huawei_solar.exceptions import HuaweiSolarException
+from huawei_solar.register_definitions.string import bytes_to_string
 from huawei_solar.utils import get_local_timezone
 
 _LOGGER = logging.getLogger(__name__)
@@ -236,9 +236,9 @@ class OptimizerSystemInformationDataFile:
 
         (
             self.file_version,
-            feature_data_sequence_number,
-            length,
-            reserved,
+            _feature_data_sequence_number,
+            _length,
+            _reserved,
             number_of_optimizers,
         ) = struct.unpack_from(
             OptimizerSystemInformationDataFile.HEADER,
@@ -277,10 +277,10 @@ class OptimizerSystemInformationDataFile:
                             if position_in_current_string != INVALID_OPTIMIZER_POSITION
                             else None
                         ),
-                        _to_string(sn),
-                        _to_string(software_version),
-                        _to_string(alias),
-                        _to_string(model),
+                        bytes_to_string(sn),
+                        bytes_to_string(software_version),
+                        bytes_to_string(alias),
+                        bytes_to_string(model),
                     ),
                 )
 
@@ -295,7 +295,7 @@ class OptimizerSystemInformationDataFile:
                     software_version,
                     alias,
                     model,
-                    machine_id,
+                    _machine_id,
                     one_to_more,
                     rated_power,
                     cpu_type,
@@ -318,10 +318,10 @@ class OptimizerSystemInformationDataFile:
                             if position_in_current_string != INVALID_OPTIMIZER_POSITION
                             else None
                         ),
-                        _to_string(sn),
-                        _to_string(software_version),
-                        _to_string(alias),
-                        _to_string(model),
+                        bytes_to_string(sn),
+                        bytes_to_string(software_version),
+                        bytes_to_string(alias),
+                        bytes_to_string(model),
                         # machine_id=_to_string(machine_id), # looks like gibberish? ignoring...  # noqa: ERA001
                         one_to_more=bool(one_to_more),
                         rated_power=rated_power,
@@ -333,11 +333,3 @@ class OptimizerSystemInformationDataFile:
             raise HuaweiSolarException(
                 msg,
             )
-
-
-def _to_string(data: bytes) -> str:
-    try:
-        return data.decode("ascii").rstrip("\x00")
-    except ValueError:
-        _LOGGER.exception("Could not decode '%s'. Ignoring", binascii.hexlify(data))
-        return ""

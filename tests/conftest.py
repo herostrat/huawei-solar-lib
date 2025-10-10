@@ -4,7 +4,7 @@ from typing import Any
 import pytest
 
 from huawei_solar.bridge import HuaweiSUN2000Bridge
-from huawei_solar.huawei_solar import AsyncHuaweiSolar
+from huawei_solar.modbus_client import AsyncHuaweiSolarClient
 from huawei_solar.register_values import StorageProductModel
 
 MOCK_REGISTERS = {
@@ -128,12 +128,12 @@ class MockModbusClient:
 
 
 @pytest.fixture
-def huawei_solar() -> AsyncHuaweiSolar:
-    return AsyncHuaweiSolar(client=MockModbusClient(), cooldown_time=0)  # type: ignore[report-argument-type]
+def huawei_solar() -> AsyncHuaweiSolarClient:
+    return AsyncHuaweiSolarClient(client=MockModbusClient(), cooldown_time=0)  # type: ignore[report-argument-type]
 
 
 @pytest.fixture
-def huawei_bridge(huawei_solar: AsyncHuaweiSolar) -> HuaweiSUN2000Bridge:
+def huawei_bridge(huawei_solar: AsyncHuaweiSolarClient) -> HuaweiSUN2000Bridge:
     return HuaweiSUN2000Bridge(
         client=huawei_solar,
         slave_id=1,

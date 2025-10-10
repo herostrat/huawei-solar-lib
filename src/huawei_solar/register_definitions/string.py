@@ -35,13 +35,16 @@ class StringRegister(RegisterDefinition[str]):
 
     def decode(self, values: tuple[Any, ...]) -> Result[str]:
         """Decode string."""
-        value = values[0]
-        # Strip any output after the first null-byte
-        null_byte_index = value.find(b"\x00")
-        if null_byte_index != -1:
-            value = value[:null_byte_index]
-
         try:
-            return Result(value.decode("utf-8"), None)
+            return Result(bytes_to_string(values[0]), None)
         except UnicodeDecodeError as err:
             raise DecodeError from err
+
+
+def bytes_to_string(value: bytes) -> str:
+    """Convert bytes to string, stripping any null bytes."""
+    # Strip anything after the first null-byte, as that is typically garbage
+    null_byte_index = value.find(b"\x00")
+    if null_byte_index != -1:
+        value = value[:null_byte_index]
+    return value.decode("utf-8")

@@ -38,7 +38,7 @@ def bitfield_decoder(definition: dict[int, T], bitfield: int) -> list[Any]:
     return result
 
 
-REGISTERS: dict[str, RegisterDefinition] = {
+REGISTERS: dict[rn.RegisterName, RegisterDefinition] = {
     rn.MODEL_NAME: StringRegister(
         30000,
         15,
@@ -338,7 +338,7 @@ PV_REGISTERS = {
 
 REGISTERS.update(PV_REGISTERS)
 
-BATTERY_REGISTERS: dict[str, RegisterDefinition] = {
+BATTERY_REGISTERS: dict[rn.RegisterName, RegisterDefinition] = {
     rn.STORAGE_UNIT_1_RUNNING_STATUS: U16Register(rv.StorageStatus, 1, 37000),
     rn.STORAGE_UNIT_1_CHARGE_DISCHARGE_POWER: I32Register("W", 1, 37001),
     rn.STORAGE_UNIT_1_BUS_VOLTAGE: U16Register("V", 10, 37003),
@@ -579,7 +579,7 @@ BATTERY_REGISTERS: dict[str, RegisterDefinition] = {
 }
 REGISTERS.update(BATTERY_REGISTERS)
 
-CAPACITY_CONTROL_REGISTERS: dict[str, RegisterDefinition] = {
+CAPACITY_CONTROL_REGISTERS: dict[rn.RegisterName, RegisterDefinition] = {
     # We must check if we can read from these registers to know if this feature is supported
     # by the inverter/battery firmware
     rn.STORAGE_CAPACITY_CONTROL_MODE: U16Register(
@@ -602,7 +602,7 @@ CAPACITY_CONTROL_REGISTERS: dict[str, RegisterDefinition] = {
 
 REGISTERS.update(CAPACITY_CONTROL_REGISTERS)
 
-EMMA_REGISTERS: dict[str, RegisterDefinition] = {
+EMMA_REGISTERS: dict[rn.RegisterName, RegisterDefinition] = {
     rn.EMMA_SOFTWARE_VERSION: StringRegister(30035, 15, target_device=TargetDevice.EMMA),
     rn.EMMA_MODEL: StringRegister(30222, 20, target_device=TargetDevice.EMMA),
     rn.INVERTER_TOTAL_ABSORBED_ENERGY: U64Register("kWh", 100, 30302, target_device=TargetDevice.EMMA),
@@ -818,7 +818,7 @@ EMMA_REGISTERS: dict[str, RegisterDefinition] = {
 
 REGISTERS.update(EMMA_REGISTERS)
 
-SCHARGER_REGISTERS = {
+SCHARGER_REGISTERS: dict[rn.RegisterName, RegisterDefinition] = {
     rn.CHARGER_SOFTWARE_VERSION: StringRegister(30031, 16, target_device=TargetDevice.SCHARGER),
     rn.CHARGER_ESN: StringRegister(30015, 16, target_device=TargetDevice.SCHARGER),
     rn.CHARGER_MODEL: StringRegister(30078, 14, target_device=TargetDevice.SCHARGER),
@@ -832,7 +832,7 @@ SCHARGER_REGISTERS = {
 
 REGISTERS.update(SCHARGER_REGISTERS)
 
-METER_REGISTERS = {
+METER_REGISTERS: dict[rn.RegisterName, RegisterDefinition] = {
     rn.METER_STATUS: U16Register(rv.MeterStatus, 1, 37100),
     rn.GRID_A_VOLTAGE: I32Register("V", 10, 37101),
     rn.GRID_B_VOLTAGE: I32Register("V", 10, 37103),
@@ -860,7 +860,7 @@ METER_REGISTERS = {
 
 REGISTERS.update(METER_REGISTERS)
 
-SDONGLE_REGISTERS = {
+SDONGLE_REGISTERS: dict[rn.RegisterName, RegisterDefinition] = {
     rn.SDONGLE_TOTAL_INPUT_POWER: U32Register("W", 1, 37498),
     rn.SDONGLE_LOAD_POWER: U32Register("W", 1, 37500),
     rn.SDONGLE_GRID_POWER: I32Register("W", 1, 37502),  # positive is importing, negative is exporting

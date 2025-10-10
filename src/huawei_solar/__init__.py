@@ -1,15 +1,14 @@
 """Interact with Huawei inverters over Modbus."""
 
-from . import register_names, register_values, register_definitions
-from .bridge import (
-    HuaweiChargerBridge,
-    HuaweiEMMABridge,
-    HuaweiSolarBridge,
-    HuaweiSUN2000Bridge,
-    create_rtu_bridge,
-    create_sub_bridge,
-    create_tcp_bridge,
+from huawei_solar.device import (
+    EMMADevice,
+    SChargerDevice,
+    SUN2000Device,
+    create_device_instance,
+    create_sub_device_instance,
 )
+from huawei_solar.device_discovery import DeviceIdentifier, DeviceInfo, get_device_identifiers, get_device_infos
+
 from .exceptions import (
     ConnectionException,
     ConnectionInterruptedException,
@@ -22,29 +21,33 @@ from .exceptions import (
     TimeOfUsePeriodsException,
     WriteException,
 )
-from .huawei_solar import AsyncHuaweiSolar, Result
+from .modbus_client import AsyncHuaweiSolarClient, create_rtu_client, create_tcp_client
+from .register_definitions import Result
+from .register_names import RegisterName
 
 __all__ = [
-    "AsyncHuaweiSolar",
+    "AsyncHuaweiSolarClient",
     "ConnectionException",
     "ConnectionInterruptedException",
     "DecodeError",
+    "DeviceIdentifier",
+    "DeviceInfo",
+    "EMMADevice",
     "EncodeError",
-    "HuaweiChargerBridge",
-    "HuaweiEMMABridge",
-    "HuaweiSUN2000Bridge",
-    "HuaweiSolarBridge",
     "HuaweiSolarException",
     "InvalidCredentials",
     "PeakPeriodsValidationError",
     "ReadException",
+    "RegisterName",
     "Result",
+    "SChargerDevice",
+    "SUN2000Device",
     "TimeOfUsePeriodsException",
     "WriteException",
-    "create_rtu_bridge",
-    "create_sub_bridge",
-    "create_tcp_bridge",
-    "register_names",
-    "register_values",
-    "register_definitions",
+    "create_device_instance",
+    "create_rtu_client",
+    "create_sub_device_instance",
+    "create_tcp_client",
+    "get_device_identifiers",
+    "get_device_infos",
 ]
