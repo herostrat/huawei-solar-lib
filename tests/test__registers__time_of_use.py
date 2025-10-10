@@ -1,13 +1,19 @@
+import struct
 from unittest.mock import MagicMock
 
 import pytest
 
 import huawei_solar.register_names as rn
 from huawei_solar.exceptions import TimeOfUsePeriodsException
-from huawei_solar.register_definitions import REGISTERS, ChargeFlag, HUAWEI_LUNA2000_TimeOfUsePeriod, LG_RESU_TimeOfUsePeriod
+from huawei_solar.register_definitions.periods import (
+    ChargeFlag,
+    HUAWEI_LUNA2000_TimeOfUsePeriod,
+    LG_RESU_TimeOfUsePeriod,
+)
+from huawei_solar.registers import REGISTERS
 
 huawei_ppr = REGISTERS[rn.STORAGE_HUAWEI_LUNA2000_TIME_OF_USE_CHARGING_AND_DISCHARGING_PERIODS]
-lg_ppr = REGISTERS[rn.STORAGE_LG_RESU_TIME_OF_USE_CHARGING_AND_DISCHARGING_PERIODS]
+lg_ppr = REGISTERS[rn.STORAGE_LG_RESU_TIME_OF_USE_PRICE_PERIODS]
 
 
 def test__validate__tou_periods__HUAWEI_LUNA2000__too_long_span__start_time():
@@ -142,52 +148,60 @@ def test__validate__tou_periods__HUAWEI_LUNA2000__OK():
     huawei_ppr._validate(tou)
 
     encoded = huawei_ppr.encode(tou)
-    assert len(encoded) == 43
-    assert encoded == [
-        2,
-        15,
-        120,
-        383,
-        121,
-        150,
-        126,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-    ]
+
+    encoded_bytes = struct.pack(f">{huawei_ppr.format}", *encoded)
+
+    assert len(encoded_bytes) == huawei_ppr.length * 2
+    validation_bytes = struct.pack(
+        ">43H",
+        *[
+            2,
+            15,
+            120,
+            383,
+            121,
+            150,
+            126,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ],
+    )
+
+    assert encoded_bytes == validation_bytes
 
 
 def test__validate__tou_periods__HUAWEI_LUNA2000__OK_2():
@@ -207,54 +221,57 @@ def test__validate__tou_periods__HUAWEI_LUNA2000__OK_2():
     ]
     huawei_ppr._validate(tou)
     encoded = huawei_ppr.encode(tou)
+    encoded_bytes = struct.pack(f">{huawei_ppr.format}", *encoded)
+    assert encoded_bytes == struct.pack(
+        ">43H",
+        *[
+            2,
+            15,
+            120,
+            383,
+            0,
+            14,
+            383,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ],
+    )
 
-    assert encoded == [
-        2,
-        15,
-        120,
-        383,
-        0,
-        14,
-        383,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-    ]
-
-    decoded = huawei_ppr.decode(encoded)
+    decoded = huawei_ppr.decode(encoded).value
 
     assert decoded == tou
 
@@ -277,54 +294,58 @@ def test__validate__tou_periods__HUAWEI_LUNA2000__OK__different_days():
 
     huawei_ppr._validate(tou)
     encoded = huawei_ppr.encode(tou)
+    encoded_bytes = struct.pack(f">{huawei_ppr.format}", *encoded)
 
-    assert encoded == [
-        2,
-        0,
-        120,
-        344,
-        0,
-        120,
-        293,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-    ]
+    assert encoded_bytes == struct.pack(
+        ">43H",
+        *[
+            2,
+            0,
+            120,
+            344,
+            0,
+            120,
+            293,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ],
+    )
 
-    decoded = huawei_ppr.decode(encoded)
+    decoded = huawei_ppr.decode(encoded).value
     assert decoded == tou
 
 
@@ -335,55 +356,58 @@ def test__validate__tou_periodsG__RESU___OK():
     ]
     lg_ppr._validate(tou)
     encoded = lg_ppr.encode(tou)
+    encoded_bytes = struct.pack(f">{lg_ppr.format}", *encoded)
 
-    assert len(encoded) == 43
-    assert encoded == [
-        2,
-        5,
-        15,
-        0,
-        1000,
-        16,
-        20,
-        0,
-        1000,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-    ]
+    validation_bytes = struct.pack(
+        ">41H",
+        *[
+            2,
+            5,
+            15,
+            0,
+            1000,
+            16,
+            20,
+            0,
+            1000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ],
+    )
 
-    decoded = lg_ppr.decode(encoded)
+    assert encoded_bytes == validation_bytes
+
+    decoded = lg_ppr.decode(encoded).value
     assert decoded == tou
 
 
@@ -415,5 +439,6 @@ def test__validate__data_type__none():
     huawei_ppr._validate([])
 
     encoded = huawei_ppr.encode([])
+    encoded_bytes = struct.pack(f">{huawei_ppr.format}", *encoded)
 
-    assert encoded == [0] * 43
+    assert encoded_bytes == b"\x00\x00" * huawei_ppr.length

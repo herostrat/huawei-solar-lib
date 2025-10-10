@@ -2,7 +2,8 @@
 
 import logging
 
-from huawei_solar.register_definitions import REGISTERS, TargetDevice
+from huawei_solar.register_definitions import TargetDevice
+from huawei_solar.registers import REGISTERS
 
 _LOGGER = logging.getLogger(__name__)
 

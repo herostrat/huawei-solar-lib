@@ -144,7 +144,7 @@ class HUAWEI_LUNA2000_TimeOfUseRegisters(RegisterDefinition[list[HUAWEI_LUNA2000
 
     format = f"H{'HHBB' * HUAWEI_LUNA2000_TOU_PERIODS}"
     format_size = 1 + 4 * HUAWEI_LUNA2000_TOU_PERIODS
-    length = 41
+    length = 43
 
     def decode(self, values: tuple[Any, ...]) -> Result[list[HUAWEI_LUNA2000_TimeOfUsePeriod]]:
         """Decode time of use register."""
@@ -270,7 +270,7 @@ class ChargeDischargePeriodRegisters(RegisterDefinition[list[ChargeDischargePeri
 
     format = f"H{'HHI' * CHARGE_DISCHARGE_PERIODS}"
     format_size = 1 + 3 * CHARGE_DISCHARGE_PERIODS
-    length = 43
+    length = 41
 
     def decode(self, values: tuple[Any, ...]) -> Result[list[ChargeDischargePeriod]]:
         """Decode ChargeDischargePeriodRegisters."""

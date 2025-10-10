@@ -2,7 +2,8 @@ import pytest
 
 import huawei_solar.register_names as rn
 from huawei_solar.exceptions import PeakPeriodsValidationError
-from huawei_solar.register_definitions import REGISTERS, PeakSettingPeriod
+from huawei_solar.register_definitions.periods import PeakSettingPeriod
+from huawei_solar.registers import REGISTERS
 
 ppr = REGISTERS[rn.STORAGE_CAPACITY_CONTROL_PERIODS]
 
@@ -111,7 +112,7 @@ def test_multiple_periods_on_a_day():
     assert ppr._validate(pp) is None
 
     encoded = ppr.encode(pp)
-    assert ppr.decode(encoded) == pp
+    assert ppr.decode(encoded).value == pp
 
     pp2 = [
         PeakSettingPeriod(

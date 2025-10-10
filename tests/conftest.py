@@ -1,9 +1,11 @@
-import asyncio
-from typing import Any
+import struct
 
 import pytest
+from tmodbus.pdu.base import RT, BaseClientPDU
+from tmodbus.pdu.holding_registers import RawReadHoldingRegistersPDU
+from tmodbus.transport.async_base import AsyncBaseTransport
 
-from huawei_solar.bridge import HuaweiSUN2000Bridge
+from huawei_solar.device import SUN2000Device
 from huawei_solar.modbus_client import AsyncHuaweiSolarClient
 from huawei_solar.register_values import StorageProductModel
 
@@ -108,35 +110,46 @@ MOCK_REGISTERS = {
 }
 
 
-class MockModbusClient:
-    time_zone = 60
-    battery_type = StorageProductModel.HUAWEI_LUNA2000
+class MockTransport(AsyncBaseTransport):
+    """Mock transport for testing."""
 
-    def __init__(self) -> None:
-        self.connected = True
-        self.connected_event = asyncio.Event()
-        self.connected_event.set()
+    async def open(self) -> None:
+        """Mock open transport."""
+        return
 
-    async def read_holding_registers(
-        self,
-        register: int,
-        count: int,
-        *args: Any,  # noqa: ANN401
-        **kwargs: Any,  # noqa: ANN401
-    ) -> ReadHoldingRegistersResponse:
-        return ReadHoldingRegistersResponse(registers=MOCK_REGISTERS[(register, count)])
+    async def close(self) -> None:
+        """Mock close transport."""
+        return
+
+    def is_open(self) -> bool:
+        """Mock is transport open."""
+        return True
+
+    async def send_and_receive(self, unit_id: int, pdu: BaseClientPDU[RT]) -> RT:
+        """Mock send and receive."""
+
+        if isinstance(pdu, RawReadHoldingRegistersPDU):
+            key = (pdu.start_address, pdu.quantity)
+            if mock_register := MOCK_REGISTERS.get(key):
+                return struct.pack(f">{'H' * pdu.quantity}", *mock_register)  # type: ignore
+            raise Exception(f"MockTransport: No mock data for {key}")
+        raise Exception(f"MockTransport: Unsupported PDU type {type(pdu)}")
 
 
 @pytest.fixture
 def huawei_solar() -> AsyncHuaweiSolarClient:
-    return AsyncHuaweiSolarClient(client=MockModbusClient(), cooldown_time=0)  # type: ignore[report-argument-type]
+    return AsyncHuaweiSolarClient(transport=MockTransport(), unit_id=1)  # type: ignore[report-argument-type]
 
 
 @pytest.fixture
-def huawei_bridge(huawei_solar: AsyncHuaweiSolarClient) -> HuaweiSUN2000Bridge:
-    return HuaweiSUN2000Bridge(
+def sun2000_device(huawei_solar: AsyncHuaweiSolarClient) -> SUN2000Device:
+    sun2000_device = SUN2000Device(
         client=huawei_solar,
-        slave_id=1,
         model_name="SUN2000-9KTL-123",
-        update_lock=asyncio.Lock(),
+        primary_device=None,
     )
+
+    sun2000_device._time_zone = 60
+    sun2000_device.battery_1_type = StorageProductModel.HUAWEI_LUNA2000
+
+    return sun2000_device

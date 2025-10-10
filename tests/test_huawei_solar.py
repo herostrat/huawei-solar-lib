@@ -1,3 +1,4 @@
+import struct
 from unittest.mock import patch
 
 import pytest
@@ -18,33 +19,17 @@ async def test_get_model_name(huawei_solar: AsyncHuaweiSolarClient):
 async def test_get_invalid_model_name(huawei_solar: AsyncHuaweiSolarClient):
     # invalid utf-8 sequence from here:
     # https://stackoverflow.com/questions/1301402/example-invalid-utf8-string
+
+    value = struct.pack(
+        ">15H",
+        *[21333, 20018, int.from_bytes(b"\xa0\xa1"), 12336, 12333, 13131, 21580, 226, 0, 0, 0, 0, 0, 226, 10370],
+    )
+
     with (
-        patch.object(
-            huawei_solar,
-            "_read_registers",
-            return_value=ReadHoldingRegistersResponse(
-                registers=[
-                    21333,
-                    20018,
-                    12336,
-                    12333,
-                    13131,
-                    21580,
-                    11596,
-                    12544,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    226,
-                    10370,
-                ],
-            ),
-        ),
+        patch.object(huawei_solar, "execute", return_value=value),
         pytest.raises(DecodeError),
     ):
-        await huawei_solar.get("model_name")
+        await huawei_solar.get(rn.MODEL_NAME)
 
 
 async def test_get_serial_number(huawei_solar: AsyncHuaweiSolarClient):
@@ -63,49 +48,49 @@ async def test_get_multiple(huawei_solar: AsyncHuaweiSolarClient):
 
 
 async def test_get_model_id(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("model_id")
+    result = await huawei_solar.get(rn.MODEL_ID)
     assert result.value == 348
     assert result.unit is None
 
 
 async def test_get_nb_pv_strings(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("nb_pv_strings")
+    result = await huawei_solar.get(rn.NB_PV_STRINGS)
     assert result.value == 2
     assert result.unit is None
 
 
 async def test_get_nb_mpp_tracks(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("nb_mpp_tracks")
+    result = await huawei_solar.get(rn.NB_MPP_TRACKS)
     assert result.value == 2
     assert result.unit is None
 
 
 async def test_get_rated_power(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("rated_power")
+    result = await huawei_solar.get(rn.RATED_POWER)
     assert result.value == 3000
     assert result.unit == "W"
 
 
 async def test_get_p_max(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("P_max")
+    result = await huawei_solar.get(rn.P_MAX)
     assert result.value == 3300
     assert result.unit == "W"
 
 
 async def test_get_s_max(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("S_max")
+    result = await huawei_solar.get(rn.S_MAX)
     assert result.value == 3300
     assert result.unit == "VA"
 
 
 async def test_get_q_max_out(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("Q_max_out")
+    result = await huawei_solar.get(rn.Q_MAX_OUT)
     assert result.value == 1980
     assert result.unit == "var"
 
 
 async def test_get_q_max_in(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("Q_max_in")
+    result = await huawei_solar.get(rn.Q_MAX_IN)
     assert result.value == -1980
     assert result.unit == "var"
 
@@ -119,8 +104,8 @@ async def test_get_state_1(huawei_solar: AsyncHuaweiSolarClient):
 async def test_get_state_1_extra_bits_set(huawei_solar: AsyncHuaweiSolarClient):
     with patch.object(
         huawei_solar,
-        "_read_registers",
-        return_value=ReadHoldingRegistersResponse(registers=[0b0111_1100_0000_0000]),
+        "execute",
+        return_value=b"\x7c\x00",
     ):
         result = await huawei_solar.get(rn.STATE_1)
         assert result.value == []
@@ -136,8 +121,8 @@ async def test_get_state_2(huawei_solar: AsyncHuaweiSolarClient):
 async def test_get_state_2_extra_bits_set(huawei_solar: AsyncHuaweiSolarClient):
     with patch.object(
         huawei_solar,
-        "_read_registers",
-        return_value=ReadHoldingRegistersResponse(registers=[0b0111_1111_1111_1000]),
+        "execute",
+        return_value=b"\x7f\xf8",
     ):
         result = await huawei_solar.get(rn.STATE_2)
 
@@ -153,13 +138,11 @@ async def test_get_state_3(huawei_solar: AsyncHuaweiSolarClient):
 async def test_get_state_3_extra_bits_set(huawei_solar: AsyncHuaweiSolarClient):
     with patch.object(
         huawei_solar,
-        "_read_registers",
-        return_value=ReadHoldingRegistersResponse(
-            registers=[0b0111_1111_1111_1111, 0b0111_1111_1111_1111],
-        ),
+        "execute",
+        return_value=b"\x7f\xf8\x7f\xff",
     ):
         result = await huawei_solar.get(rn.STATE_3)
-        assert result.value, ["Off-grid", "Off-grid switch enabled"]
+        assert result.value == ["Off-grid", "Off-grid switch enabled"]
         assert result.unit is None
 
 
@@ -176,8 +159,8 @@ async def test_get_alarm_1_some(huawei_solar: AsyncHuaweiSolarClient):
 async def test_get_alarm_1_none(huawei_solar: AsyncHuaweiSolarClient):
     with patch.object(
         huawei_solar,
-        "_read_registers",
-        return_value=ReadHoldingRegistersResponse(registers=[0]),
+        "execute",
+        return_value=b"\x00\x00",
     ):
         result = await huawei_solar.get(rn.ALARM_1)
         assert result.value == []
@@ -187,8 +170,8 @@ async def test_get_alarm_1_none(huawei_solar: AsyncHuaweiSolarClient):
 async def test_get_alarm_1_all(huawei_solar: AsyncHuaweiSolarClient):
     with patch.object(
         huawei_solar,
-        "_read_registers",
-        return_value=ReadHoldingRegistersResponse(registers=[0b1111_1111_1111_1111]),
+        "execute",
+        return_value=b"\xff\xff",
     ):
         result = await huawei_solar.get(rn.ALARM_1)
         expected_result = list(rv.ALARM_CODES_1.values())
@@ -209,8 +192,8 @@ async def test_get_alarm_2_some(huawei_solar: AsyncHuaweiSolarClient):
 async def test_get_alarm_2_none(huawei_solar: AsyncHuaweiSolarClient):
     with patch.object(
         huawei_solar,
-        "_read_registers",
-        return_value=ReadHoldingRegistersResponse(registers=[0]),
+        "execute",
+        return_value=b"\x00\x00",
     ):
         result = await huawei_solar.get(rn.ALARM_2)
         expected_result = []
@@ -221,8 +204,8 @@ async def test_get_alarm_2_none(huawei_solar: AsyncHuaweiSolarClient):
 async def test_get_alarm_2_all(huawei_solar: AsyncHuaweiSolarClient):
     with patch.object(
         huawei_solar,
-        "_read_registers",
-        return_value=ReadHoldingRegistersResponse(registers=[0b1111_1111_1111_1111]),
+        "execute",
+        return_value=b"\xff\xff",
     ):
         result = await huawei_solar.get(rn.ALARM_2)
         expected_result = list(rv.ALARM_CODES_2.values())
@@ -240,8 +223,8 @@ async def test_get_alarm_3_some(huawei_solar: AsyncHuaweiSolarClient):
 async def test_get_alarm_3_almost_all(huawei_solar: AsyncHuaweiSolarClient):
     with patch.object(
         huawei_solar,
-        "_read_registers",
-        return_value=ReadHoldingRegistersResponse(registers=[0b0111_1111_1111_1111]),
+        "execute",
+        return_value=b"\x7f\xff",
     ):
         result = await huawei_solar.get(rn.ALARM_3)
         expected_result = list(rv.ALARM_CODES_3.values())[:-1]
@@ -252,8 +235,8 @@ async def test_get_alarm_3_almost_all(huawei_solar: AsyncHuaweiSolarClient):
 async def test_get_alarm_3_3rd_octet_bits_set(huawei_solar: AsyncHuaweiSolarClient):
     with patch.object(
         huawei_solar,
-        "_read_registers",
-        return_value=ReadHoldingRegistersResponse(registers=[0b0000_1110_0000_0000]),
+        "execute",
+        return_value=b"\x0e\x00",
     ):
         result = await huawei_solar.get(rn.ALARM_3)
         expected_result = list(rv.ALARM_CODES_3.values())[9:12]
@@ -262,49 +245,49 @@ async def test_get_alarm_3_3rd_octet_bits_set(huawei_solar: AsyncHuaweiSolarClie
 
 
 async def test_get_pv_01_voltage(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("pv_01_voltage")
+    result = await huawei_solar.get(rn.PV_01_VOLTAGE)
     assert result.value == 0
     assert result.unit == "V"
 
 
 async def test_get_pv_01_current(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("pv_01_current")
+    result = await huawei_solar.get(rn.PV_01_CURRENT)
     assert result.value == 0
     assert result.unit == "A"
 
 
 async def test_get_pv_02_voltage(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("pv_02_voltage")
+    result = await huawei_solar.get(rn.PV_02_VOLTAGE)
     assert result.value == 0
     assert result.unit == "V"
 
 
 async def test_get_pv_02_current(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("pv_02_current")
+    result = await huawei_solar.get(rn.PV_02_CURRENT)
     assert result.value == 0
     assert result.unit == "A"
 
 
 async def test_get_pv_03_voltage(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("pv_03_voltage")
+    result = await huawei_solar.get(rn.PV_03_VOLTAGE)
     assert result.value == 0
     assert result.unit == "V"
 
 
 async def test_get_pv_03_current(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("pv_03_current")
+    result = await huawei_solar.get(rn.PV_03_CURRENT)
     assert result.value == 0
     assert result.unit == "A"
 
 
 async def test_get_pv_04_voltage(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("pv_04_voltage")
+    result = await huawei_solar.get(rn.PV_04_VOLTAGE)
     assert result.value == 0
     assert result.unit == "V"
 
 
 async def test_get_pv_04_current(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("pv_04_current")
+    result = await huawei_solar.get(rn.PV_04_CURRENT)
     assert result.value == 0
     assert result.unit == "A"
 
@@ -364,67 +347,67 @@ async def test_get_line_phase_c_voltage(huawei_solar: AsyncHuaweiSolarClient):
 
 
 async def test_get_grid_current(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("grid_current")
+    result = await huawei_solar.get(rn.GRID_CURRENT)
     assert result.value == 0
     assert result.unit == "A"
 
 
 async def test_get_phase_a_current(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("phase_A_current")
+    result = await huawei_solar.get(rn.PHASE_A_CURRENT)
     assert result.value == 0
     assert result.unit == "A"
 
 
 async def test_get_phase_b_current(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("phase_B_current")
+    result = await huawei_solar.get(rn.PHASE_B_CURRENT)
     assert result.value == 0
     assert result.unit == "A"
 
 
 async def test_get_phase_c_current(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("phase_C_current")
+    result = await huawei_solar.get(rn.PHASE_C_CURRENT)
     assert result.value == 0
     assert result.unit == "A"
 
 
 async def test_get_day_active_power_peak(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("day_active_power_peak")
+    result = await huawei_solar.get(rn.DAY_ACTIVE_POWER_PEAK)
     assert result.value == 225
     assert result.unit == "W"
 
 
 async def test_get_active_power(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("active_power")
+    result = await huawei_solar.get(rn.ACTIVE_POWER)
     assert result.value == 0
     assert result.unit == "W"
 
 
 async def test_get_reactive_power(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("reactive_power")
+    result = await huawei_solar.get(rn.REACTIVE_POWER)
     assert result.value == 0
     assert result.unit == "var"
 
 
 async def test_get_power_factor(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("power_factor")
+    result = await huawei_solar.get(rn.POWER_FACTOR)
     assert result.value == 0.0
     assert result.unit is None
 
 
 async def test_get_grid_frequency(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("grid_frequency")
+    result = await huawei_solar.get(rn.GRID_FREQUENCY)
     assert result.value == 0.0
     assert result.unit == "Hz"
 
 
 async def test_get_efficiency(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("efficiency")
+    result = await huawei_solar.get(rn.EFFICIENCY)
     assert result.value == 0.0
     assert result.unit == "%"
 
 
 async def test_get_internal_temperature(huawei_solar: AsyncHuaweiSolarClient):
-    result = await huawei_solar.get("internal_temperature")
+    result = await huawei_solar.get(rn.INTERNAL_TEMPERATURE)
     assert result.value == 0.0
     assert result.unit == "°C"
 
@@ -445,8 +428,8 @@ async def test_get_device_status_invalid(huawei_solar: AsyncHuaweiSolarClient):
     with (
         patch.object(
             huawei_solar,
-            "_read_registers",
-            return_value=ReadHoldingRegistersResponse(registers=[0b0000_0010_1111_1111]),
+            "execute",
+            return_value=b"\x02\xff",
         ),
         pytest.raises(DecodeError),
     ):

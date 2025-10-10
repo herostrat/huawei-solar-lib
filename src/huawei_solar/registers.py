@@ -460,7 +460,6 @@ BATTERY_REGISTERS: dict[rn.RegisterName, RegisterDefinition] = {
     rn.STORAGE_WORKING_MODE_A: I16Register(rv.StorageWorkingModesA, 1, 47004),
     rn.STORAGE_TIME_OF_USE_PRICE: I16Register(bool, 1, 47027),
     rn.STORAGE_LG_RESU_TIME_OF_USE_PRICE_PERIODS: LG_RESU_TimeOfUseRegisters(47028, writeable=True),
-    rn.STORAGE_HUAWEI_LUNA2000_TIME_OF_USE_PRICE_PERIODS: HUAWEI_LUNA2000_TimeOfUseRegisters(47028, writeable=True),
     rn.STORAGE_LCOE: U32Register(None, 1000, 47069),
     rn.STORAGE_MAXIMUM_CHARGING_POWER: U32Register("W", 1, 47075, writeable=True),
     rn.STORAGE_MAXIMUM_DISCHARGING_POWER: U32Register("W", 1, 47077, writeable=True),
@@ -527,10 +526,6 @@ BATTERY_REGISTERS: dict[rn.RegisterName, RegisterDefinition] = {
     ),
     rn.STORAGE_FORCIBLE_CHARGE_POWER: U32Register(None, 1, 47247, writeable=True),
     rn.STORAGE_FORCIBLE_DISCHARGE_POWER: U32Register(None, 1, 47249, writeable=True),
-    rn.STORAGE_LG_RESU_TIME_OF_USE_CHARGING_AND_DISCHARGING_PERIODS: LG_RESU_TimeOfUseRegisters(
-        47255,
-        writeable=True,
-    ),
     rn.STORAGE_HUAWEI_LUNA2000_TIME_OF_USE_CHARGING_AND_DISCHARGING_PERIODS: HUAWEI_LUNA2000_TimeOfUseRegisters(
         47255,
         writeable=True,

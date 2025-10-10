@@ -396,9 +396,6 @@ STORAGE_MAXIMUM_POWER_OF_CHARGE_FROM_GRID = RegisterName("storage_maximum_power_
 STORAGE_FORCIBLE_CHARGE_DISCHARGE_SETTING_MODE = RegisterName("storage_forcible_charge_discharge_setting_mode")
 STORAGE_FORCIBLE_CHARGE_POWER = RegisterName("storage_forcible_charge_power")
 STORAGE_FORCIBLE_DISCHARGE_POWER = RegisterName("storage_forcible_discharge_power")
-STORAGE_LG_RESU_TIME_OF_USE_CHARGING_AND_DISCHARGING_PERIODS = RegisterName(
-    "storage_lg_resu_time_of_use_charging_and_discharging_periods"
-)
 STORAGE_HUAWEI_LUNA2000_TIME_OF_USE_CHARGING_AND_DISCHARGING_PERIODS = RegisterName(
     "storage_huawei_luna2000_time_of_use_charging_and_discharging_periods"
 )

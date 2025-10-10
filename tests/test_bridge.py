@@ -1,16 +1,16 @@
 import huawei_solar.register_names as rn
-from huawei_solar.bridge import HuaweiSolarBridge
+from huawei_solar.device import SUN2000Device
 
 
-async def test_get_model_name(huawei_bridge: HuaweiSolarBridge):
-    result = await huawei_bridge.batch_update([rn.MODEL_NAME])
+async def test_get_model_name(sun2000_device: SUN2000Device):
+    result = await sun2000_device.batch_update([rn.MODEL_NAME])
     assert len(result) == 1
     assert result[rn.MODEL_NAME].value == "SUN2000-3KTL-L1"
     assert result[rn.MODEL_NAME].unit is None
 
 
-async def test_get_multiple(huawei_bridge: HuaweiSolarBridge):
-    result = await huawei_bridge.batch_update(
+async def test_get_multiple(sun2000_device: SUN2000Device):
+    result = await sun2000_device.batch_update(
         [rn.INPUT_POWER, rn.LINE_VOLTAGE_A_B, rn.LINE_VOLTAGE_B_C, rn.LINE_VOLTAGE_C_A],
     )
     assert len(result) == 4

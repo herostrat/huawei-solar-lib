@@ -1,5 +1,6 @@
 import huawei_solar.register_names as rn
-from huawei_solar.register_definitions import REGISTERS, PeakSettingPeriod
+from huawei_solar.register_definitions.periods import PeakSettingPeriod
+from huawei_solar.registers import REGISTERS
 
 
 def test_capacity_control_register():
@@ -23,6 +24,6 @@ def test_capacity_control_register():
 
     payload = pspr.encode(value)
 
-    decoded_result = pspr.decode(payload)
+    decoded_result = pspr.decode(payload).value
 
     assert decoded_result == value
