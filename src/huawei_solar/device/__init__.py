@@ -8,6 +8,8 @@ from huawei_solar.modbus_client import AsyncHuaweiSolarClient
 from .base import HuaweiSolarDevice
 from .emma import EMMADevice
 from .scharger import SChargerDevice
+from .sdongle import SDongleDevice
+from .smartlogger import SmartLoggerDevice
 from .sun2000 import SUN2000Device
 
 _LOGGER = getLogger(__name__)
@@ -15,7 +17,7 @@ _LOGGER = getLogger(__name__)
 
 def get_device_class_for_model(model_name: str) -> type[HuaweiSolarDevice]:
     """Get the device class for the given model name."""
-    for candidate_bridge_class in [SUN2000Device, EMMADevice, SChargerDevice]:
+    for candidate_bridge_class in [SUN2000Device, EMMADevice, SChargerDevice, SDongleDevice, SmartLoggerDevice]:
         if candidate_bridge_class.supports_device(model_name):
             return candidate_bridge_class
 
@@ -58,7 +60,9 @@ async def create_sub_device_instance(
 __all__ = [
     "EMMADevice",
     "SChargerDevice",
+    "SDongleDevice",
     "SUN2000Device",
+    "SmartLoggerDevice",
     "create_device_instance",
     "create_sub_device_instance",
 ]

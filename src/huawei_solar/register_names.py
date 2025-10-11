@@ -372,7 +372,6 @@ STORAGE_UNIT_1_PRODUCT_MODEL = RegisterName("storage_unit_1_product_model")
 STORAGE_WORKING_MODE_A = RegisterName("storage_working_mode_a")
 STORAGE_TIME_OF_USE_PRICE = RegisterName("storage_time_of_use_price")
 STORAGE_LG_RESU_TIME_OF_USE_PRICE_PERIODS = RegisterName("storage_lg_resu_time_of_use_price_periods")
-STORAGE_HUAWEI_LUNA2000_TIME_OF_USE_PRICE_PERIODS = RegisterName("storage_huawei_luna2000_time_of_use_price_periods")
 STORAGE_LCOE = RegisterName("storage_lcoe")
 STORAGE_MAXIMUM_CHARGING_POWER = RegisterName("storage_maximum_charging_power")
 STORAGE_MAXIMUM_DISCHARGING_POWER = RegisterName("storage_maximum_discharging_power")
@@ -560,3 +559,274 @@ SDONGLE_LOAD_POWER = RegisterName("sdongle_load_power")
 SDONGLE_GRID_POWER = RegisterName("sdongle_grid_power")
 SDONGLE_TOTAL_BATTERY_POWER = RegisterName("sdongle_total_battery_power")
 SDONGLE_TOTAL_ACTIVE_POWER = RegisterName("sdongle_total_active_power")
+
+SMARTLOGGER_DATE_TIME = RegisterName("smartlogger_date_time")
+SMARTLOGGER_CITY = RegisterName("smartlogger_city")
+SMARTLOGGER_DAYLIGHT_SAVING_TIME_DST = RegisterName("smartlogger_daylight_saving_time_dst")
+SMARTLOGGER_TIME_ZONE = RegisterName("smartlogger_time_zone")
+SMARTLOGGER_DST_STATE = RegisterName("smartlogger_dst_state")
+SMARTLOGGER_DST_OFFSET = RegisterName("smartlogger_dst_offset")
+SMARTLOGGER_LOCAL_TIME = RegisterName("smartlogger_local_time")
+SMARTLOGGER_PV_INVERTER_SHUTDOWN = RegisterName("smartlogger_pv_inverter_shutdown")
+SMARTLOGGER_PV_INVERTER_STARTUP = RegisterName("smartlogger_pv_inverter_startup")
+SMARTLOGGER_ESS_SHUTDOWN = RegisterName("smartlogger_ess_shutdown")
+SMARTLOGGER_ESS_STARTUP = RegisterName("smartlogger_ess_startup")
+SMARTLOGGER_STARTUP = RegisterName("smartlogger_startup")
+SMARTLOGGER_SHUTDOWN = RegisterName("smartlogger_shutdown")
+SMARTLOGGER_STARTUP_SHUTDOWN = RegisterName("smartlogger_startup_shutdown")
+SMARTLOGGER_STARTUP_SHUTDOWN = RegisterName("smartlogger_startup_shutdown")
+SMARTLOGGER_TRANSFER_TRIP = RegisterName("smartlogger_transfer_trip")
+SMARTLOGGER_ARRAY_RESET = RegisterName("smartlogger_array_reset")
+SMARTLOGGER_QUANTITY_OF_RUNNING_PV_INVERTERS = RegisterName("smartlogger_quantity_of_running_pv_inverters")
+SMARTLOGGER_QUANTITY_OF_RUNNING_ESS_PCSS = RegisterName("smartlogger_quantity_of_running_ess_pcss")
+SMARTLOGGER_ESS_END_OF_DISCHARGE_SOC = RegisterName("smartlogger_ess_end_of_discharge_soc")
+SMARTLOGGER_ESS_END_OF_CHARGE_SOC = RegisterName("smartlogger_ess_end_of_charge_soc")
+SMARTLOGGER_ACTIVE_PV_POWER_ADJUSTMENT_IN_FIXED_VALUE = RegisterName(
+    "smartlogger_active_pv_power_adjustment_in_fixed_value",
+)
+SMARTLOGGER_ACTIVE_PV_POWER_ADJUSTMENT_IN_PERCENTAGE = RegisterName(
+    "smartlogger_active_pv_power_adjustment_in_percentage",
+)
+SMARTLOGGER_ACTIVE_ESS_POWER_ADJUSTMENT_IN_FIXED_VALUE = RegisterName(
+    "smartlogger_active_ess_power_adjustment_in_fixed_value",
+)
+SMARTLOGGER_ACTIVE_ESS_POWER_ADJUSTMENT_IN_PERCENTAGE = RegisterName(
+    "smartlogger_active_ess_power_adjustment_in_percentage",
+)
+SMARTLOGGER_REACTIVE_PV_POWER_ADJUSTMENT_IN_FIXED_VALUE = RegisterName(
+    "smartlogger_reactive_pv_power_adjustment_in_fixed_value",
+)
+SMARTLOGGER_REACTIVE_ESS_POWER_ADJUSTMENT_IN_FIXED_VALUE = RegisterName(
+    "smartlogger_reactive_ess_power_adjustment_in_fixed_value",
+)
+SMARTLOGGER_ACTIVE_PV_POWER = RegisterName("smartlogger_active_pv_power")
+SMARTLOGGER_REACTIVE_PV_POWER = RegisterName("smartlogger_reactive_pv_power")
+SMARTLOGGER_ACTIVE_ESS_POWER = RegisterName("smartlogger_active_ess_power")
+SMARTLOGGER_REACTIVE_ESS_POWER = RegisterName("smartlogger_reactive_ess_power")
+SMARTLOGGER_RATED_PV_POWER = RegisterName("smartlogger_rated_pv_power")
+SMARTLOGGER_RATED_ESS_POWER = RegisterName("smartlogger_rated_ess_power")
+SMARTLOGGER_MAXIMUM_ACTIVE_PV_POWER_ADJUSTMENT_VALUE = RegisterName(
+    "smartlogger_maximum_active_pv_power_adjustment_value",
+)
+SMARTLOGGER_MAXIMUM_REACTIVE_PV_POWER_ADJUSTMENT_VALUE = RegisterName(
+    "smartlogger_maximum_reactive_pv_power_adjustment_value",
+)
+SMARTLOGGER_MINIMUM_REACTIVE_PV_POWER_ADJUSTMENT_VALUE = RegisterName(
+    "smartlogger_minimum_reactive_pv_power_adjustment_value",
+)
+SMARTLOGGER_MAXIMUM_REACTIVE_ESS_POWER_ADJUSTMENT_VALUE = RegisterName(
+    "smartlogger_maximum_reactive_ess_power_adjustment_value",
+)
+SMARTLOGGER_MINIMUM_REACTIVE_ESS_POWER_ADJUSTMENT_VALUE = RegisterName(
+    "smartlogger_minimum_reactive_ess_power_adjustment_value",
+)
+SMARTLOGGER_MINIMUM_ACTIVE_POWER_ADJUSTMENT_VALUE = RegisterName("smartlogger_minimum_active_power_adjustment_value")
+SMARTLOGGER_ACTIVE_POWER_ADJUSTMENT = RegisterName("smartlogger_active_power_adjustment")
+SMARTLOGGER_REACTIVE_POWER_ADJUSTMENT = RegisterName("smartlogger_reactive_power_adjustment")
+SMARTLOGGER_ACTIVE_POWER_ADJUSTMENT = RegisterName("smartlogger_active_power_adjustment")
+SMARTLOGGER_REACTIVE_POWER_ADJUSTMENT = RegisterName("smartlogger_reactive_power_adjustment")
+SMARTLOGGER_ACTIVE_POWER_ADJUSTMENT_IN_PERCENTAGE = RegisterName("smartlogger_active_power_adjustment_in_percentage")
+SMARTLOGGER_POWER_FACTOR_ADJUSTMENT = RegisterName("smartlogger_power_factor_adjustment")
+SMARTLOGGER_ACTIVE_POWER_ADJUSTMENT_HIGHEST_PRIORITY = RegisterName(
+    "smartlogger_active_power_adjustment_highest_priority",
+)
+SMARTLOGGER_REACTIVE_POWER_ADJUSTMENT_HIGHEST_PRIORITY = RegisterName(
+    "smartlogger_reactive_power_adjustment_highest_priority",
+)
+SMARTLOGGER_POWER_SUPPLY_FROM_GRID_TODAY = RegisterName("smartlogger_power_supply_from_grid_today")
+SMARTLOGGER_TOTAL_POWER_SUPPLY_FROM_GRID = RegisterName("smartlogger_total_power_supply_from_grid")
+SMARTLOGGER_ENERGY_CHARGED_TODAY = RegisterName("smartlogger_energy_charged_today")
+SMARTLOGGER_ENERGY_DISCHARGED_TODAY = RegisterName("smartlogger_energy_discharged_today")
+SMARTLOGGER_TOTAL_ENERGY_CHARGED = RegisterName("smartlogger_total_energy_charged")
+SMARTLOGGER_TOTAL_ENERGY_DISCHARGE_D = RegisterName("smartlogger_total_energy_discharge_d")
+SMARTLOGGER_CHARGEABLE_CAPACITY = RegisterName("smartlogger_chargeable_capacity")
+SMARTLOGGER_DISCHARGEABLE_CAPACITY = RegisterName("smartlogger_dischargeable_capacity")
+SMARTLOGGER_RATED_ESS_CAPACITY = RegisterName("smartlogger_rated_ess_capacity")
+SMARTLOGGER_MAXIMUM_ESS_CHARGE_POWER = RegisterName("smartlogger_maximum_ess_charge_power")
+SMARTLOGGER_MAXIMUM_ESS_DISCHARGE_POWER = RegisterName("smartlogger_maximum_ess_discharge_power")
+SMARTLOGGER_HIGHEST_STABLE_CHARGE_POWER_OF_ESS = RegisterName("smartlogger_highest_stable_charge_power_of_ess")
+SMARTLOGGER_HIGHEST_STABLE_DISCHARGE_POWER_OF_ESS = RegisterName("smartlogger_highest_stable_discharge_power_of_ess")
+SMARTLOGGER_DC_CURRENT = RegisterName("smartlogger_dc_current")
+SMARTLOGGER_SOC = RegisterName("smartlogger_soc")
+SMARTLOGGER_SOH = RegisterName("smartlogger_soh")
+SMARTLOGGER_SOE = RegisterName("smartlogger_soe")
+SMARTLOGGER_RATED_ESS_CAPACITY_IN_AH = RegisterName("smartlogger_rated_ess_capacity_in_ah")
+SMARTLOGGER_INPUT_POWER = RegisterName("smartlogger_input_power")
+SMARTLOGGER_CO2_REDUCED = RegisterName("smartlogger_co2_reduced")
+SMARTLOGGER_ACTIVE_POWER = RegisterName("smartlogger_active_power")
+SMARTLOGGER_POWER_FACTOR = RegisterName("smartlogger_power_factor")
+SMARTLOGGER_ARRAY_IN_OPERATION = RegisterName("smartlogger_array_in_operation")
+SMARTLOGGER_ARRAY_SHUT_DOWN = RegisterName("smartlogger_array_shut_down")
+SMARTLOGGER_PV_INVERTER_IN_OPERATION = RegisterName("smartlogger_pv_inverter_in_operation")
+SMARTLOGGER_PV_INVERTER_SHUT_DOWN = RegisterName("smartlogger_pv_inverter_shut_down")
+SMARTLOGGER_ESS_PCS_IN_OPERATION = RegisterName("smartlogger_ess_pcs_in_operation")
+SMARTLOGGER_ESS_PCS_SHUT_DOWN = RegisterName("smartlogger_ess_pcs_shut_down")
+SMARTLOGGER_PLANT_STATUS = RegisterName("smartlogger_plant_status")
+SMARTLOGGER_PLANT_STATUS = RegisterName("smartlogger_plant_status")
+SMARTLOGGER_PLANT_STATUS = RegisterName("smartlogger_plant_status")
+SMARTLOGGER_REACTIVE_POWER = RegisterName("smartlogger_reactive_power")
+SMARTLOGGER_CO2_REDUCED = RegisterName("smartlogger_co2_reduced")
+SMARTLOGGER_DC_CURRENT_2 = RegisterName("smartlogger_dc_current_2")
+SMARTLOGGER_TOTAL_ENERGY_YIELD = RegisterName("smartlogger_total_energy_yield")
+SMARTLOGGER_YIELD_TODAY = RegisterName("smartlogger_yield_today")
+SMARTLOGGER_TODAYS_POWER_GENERATION_HOURS = RegisterName("smartlogger_todays_power_generation_hours")
+SMARTLOGGER_PLANT_STATUS = RegisterName("smartlogger_plant_status")
+SMARTLOGGER_PLANT_STATUS = RegisterName("smartlogger_plant_status")
+SMARTLOGGER_ACTIVE_ALARM_SEQUENCE_NUMBER = RegisterName("smartlogger_active_alarm_sequence_number")
+SMARTLOGGER_HISTORICAL_ALARM_SEQUENCE_NUMBER = RegisterName("smartlogger_historical_alarm_sequence_number")
+SMARTLOGGER_PHASE_A_CURRENT_OF_GRID = RegisterName("smartlogger_phase_a_current_of_grid")
+SMARTLOGGER_PHASE_B_CURRENT_OF_GRID = RegisterName("smartlogger_phase_b_current_of_grid")
+SMARTLOGGER_PHASE_C_CURRENT_OF_GRID = RegisterName("smartlogger_phase_c_current_of_grid")
+SMARTLOGGER_A_B_LINE_VOLTAGE_OF_GRID = RegisterName("smartlogger_a_b_line_voltage_of_grid")
+SMARTLOGGER_B_C_LINE_VOLTAGE_OF_GRID = RegisterName("smartlogger_b_c_line_voltage_of_grid")
+SMARTLOGGER_C_A_LINE_VOLTAGE_OF_GRID = RegisterName("smartlogger_c_a_line_voltage_of_grid")
+SMARTLOGGER_STATUS_INFORMATION = RegisterName("smartlogger_status_information")
+SMARTLOGGER_RESERVED = RegisterName("smartlogger_reserved")
+SMARTLOGGER_INVERTER_EFFICIENCY = RegisterName("smartlogger_inverter_efficiency")
+SMARTLOGGER_MAXIMUM_REACTIVE_POWER_ADJUSTMENT_VALUE = RegisterName(
+    "smartlogger_maximum_reactive_power_adjustment_value",
+)
+SMARTLOGGER_MINIMUM_REACTIVE_POWER_ADJUSTMENT_VALUE = RegisterName(
+    "smartlogger_minimum_reactive_power_adjustment_value",
+)
+SMARTLOGGER_MAXIMUM_ACTIVE_POWER_ADJUSTMENT_VALUE = RegisterName("smartlogger_maximum_active_power_adjustment_value")
+SMARTLOGGER_LOCKING_STATUS = RegisterName("smartlogger_locking_status")
+SMARTLOGGER_DI_GROUP_STATE = RegisterName("smartlogger_di_group_state")
+SMARTLOGGER_EQUIPMENT_SERIAL_NUMBER_ESN = RegisterName("smartlogger_equipment_serial_number_esn")
+SMARTLOGGER_SYSTEM_RESET = RegisterName("smartlogger_system_reset")
+SMARTLOGGER_FAST_DEVICE_ACCESS = RegisterName("smartlogger_fast_device_access")
+SMARTLOGGER_DEVICE_OPERATION = RegisterName("smartlogger_device_operation")
+SMARTLOGGER_DEVICE_ACCESS_STATUS = RegisterName("smartlogger_device_access_status")
+SMARTLOGGER_ACTIVE_POWER_CONTROL_MODE = RegisterName("smartlogger_active_power_control_mode")
+SMARTLOGGER_ACTIVE_POWER_SCHEDULING_TARGET_VALUE = RegisterName("smartlogger_active_power_scheduling_target_value")
+SMARTLOGGER_REACTIVE_POWER_CONTROL_MODE = RegisterName("smartlogger_reactive_power_control_mode")
+SMARTLOGGER_REACTIVE_POWER_SCHEDULING_CURVE_MODE = RegisterName("smartlogger_reactive_power_scheduling_curve_mode")
+SMARTLOGGER_REACTIVE_POWER_SCHEDULING_TARGET_VALUE = RegisterName("smartlogger_reactive_power_scheduling_target_value")
+SMARTLOGGER_ACTIVE_POWER_SCHEDULING_IN_PERCENTAGE = RegisterName("smartlogger_active_power_scheduling_in_percentage")
+SMARTLOGGER_CO2_EMISSION_REDUCTION_COEFFICIENT = RegisterName("smartlogger_co2_emission_reduction_coefficient")
+SMARTLOGGER_ACTIVE_POWER_CONTROL_MODE = RegisterName("smartlogger_active_power_control_mode")
+SMARTLOGGER_PV_MODULE_CAPACITY = RegisterName("smartlogger_pv_module_capacity")
+SMARTLOGGER_RATED_PLANT_CAPACITY = RegisterName("smartlogger_rated_plant_capacity")
+SMARTLOGGER_TOTAL_RATED_CAPACITY_OF_GRID_TIED_INVERTERS = RegisterName(
+    "smartlogger_total_rated_capacity_of_grid_tied_inverters",
+)
+SMARTLOGGER_CONVERSION_COEFFICIENT = RegisterName("smartlogger_conversion_coefficient")
+SMARTLOGGER_COMMUNICATION_STATUS = RegisterName("smartlogger_communication_status")
+SMARTLOGGER_SHUT_DOWN_ARRAY_UPON_COMMUNICATION_TIMEOUT = RegisterName(
+    "smartlogger_shut_down_array_upon_communication_timeout",
+)
+SMARTLOGGER_TIME_FOR_COMMUNICATION_EXCEPTION_DETECTION = RegisterName(
+    "smartlogger_time_for_communication_exception_detection",
+)
+SMARTLOGGER_START_UP_ARRAY_UPON_COMMUNICATION_RECOVERY = RegisterName(
+    "smartlogger_start_up_array_upon_communication_recovery",
+)
+SMARTLOGGER_SYSTEM_TIME_YEAR = RegisterName("smartlogger_system_time_year")
+SMARTLOGGER_SYSTEM_TIME_MONTH = RegisterName("smartlogger_system_time_month")
+SMARTLOGGER_SYSTEM_TIME_DAY = RegisterName("smartlogger_system_time_day")
+SMARTLOGGER_SYSTEM_TIME_HOUR = RegisterName("smartlogger_system_time_hour")
+SMARTLOGGER_SYSTEM_TIME_MINUTE = RegisterName("smartlogger_system_time_minute")
+SMARTLOGGER_SYSTEM_TIME_SECOND = RegisterName("smartlogger_system_time_second")
+SMARTLOGGER_CURRENT_ERROR_DURING_SCANNING = RegisterName("smartlogger_current_error_during_scanning")
+SMARTLOGGER_WORKING_MODE = RegisterName("smartlogger_working_mode")
+SMARTLOGGER_THE_ACTIVE_POWER_GRADIENT_REGISTER = RegisterName("smartlogger_the_active_power_gradient_register")
+SMARTLOGGER_INSPECTION_CONTROL = RegisterName("smartlogger_inspection_control")
+SMARTLOGGER_I_V_CURVE_SCANNING = RegisterName("smartlogger_i_v_curve_scanning")
+SMARTLOGGER_REACTIVE_POWER_CONTROL_MODE = RegisterName("smartlogger_reactive_power_control_mode")
+SMARTLOGGER_ARRAY_BLACK_START = RegisterName("smartlogger_array_black_start")
+SMARTLOGGER_ARRAY_BLACK_START_STATUS = RegisterName("smartlogger_array_black_start_status")
+SMARTLOGGER_PV_ARRAY_PCS_WORKING_MODE = RegisterName("smartlogger_pv_array_pcs_working_mode")
+SMARTLOGGER_VOLTAGE_ADJUSTMENT_VALUE_FOR_VSG_SYNCHRONOUS_CONTROL = RegisterName(
+    "smartlogger_voltage_adjustment_value_for_vsg_synchronous_control",
+)
+SMARTLOGGER_FREQUENCY_ADJUSTMENT_VALUE_FOR_VSG_SYNCHRONOUS_CONTROL = RegisterName(
+    "smartlogger_frequency_adjustment_value_for_vsg_synchronous_control",
+)
+SMARTLOGGER_POWER_ON_THE_PCS_OF_THE_SUBARRAY = RegisterName("smartlogger_power_on_the_pcs_of_the_subarray")
+SMARTLOGGER_SHUT_DOWN_THE_PCS_OF_THE_SUBARRAY = RegisterName("smartlogger_shut_down_the_pcs_of_the_subarray")
+SMARTLOGGER_SUBARRAY_PV_INVERTER_MICROGRID_ADAPTABILITY = RegisterName(
+    "smartlogger_subarray_pv_inverter_microgrid_adaptability",
+)
+SMARTLOGGER_ALARM_1 = RegisterName("smartlogger_alarm_1")
+SMARTLOGGER_ALARM_2 = RegisterName("smartlogger_alarm_2")
+SMARTLOGGER_ALARM_3 = RegisterName("smartlogger_alarm_3")
+SMARTLOGGER_ALARM_4 = RegisterName("smartlogger_alarm_4")
+SMARTLOGGER_ALARM_5 = RegisterName("smartlogger_alarm_5")
+SMARTLOGGER_ALARM_6 = RegisterName("smartlogger_alarm_6")
+
+SMARTLOGGER_EXTERNAL_METER_PHASE_A_VOLTAGE = RegisterName("smartlogger_external_meter_phase_a_voltage")
+SMARTLOGGER_EXTERNAL_METER_PHASE_B_VOLTAGE = RegisterName("smartlogger_external_meter_phase_b_voltage")
+SMARTLOGGER_EXTERNAL_METER_PHASE_C_VOLTAGE = RegisterName("smartlogger_external_meter_phase_c_voltage")
+SMARTLOGGER_EXTERNAL_METER_A_B_LINE_VOLTAGE = RegisterName("smartlogger_external_meter_a_b_line_voltage")
+SMARTLOGGER_EXTERNAL_METER_B_C_LINE_VOLTAGE = RegisterName("smartlogger_external_meter_b_c_line_voltage")
+SMARTLOGGER_EXTERNAL_METER_C_A_LINE_VOLTAGE = RegisterName("smartlogger_external_meter_c_a_line_voltage")
+SMARTLOGGER_EXTERNAL_METER_PHASE_A_CURRENT = RegisterName("smartlogger_external_meter_phase_a_current")
+SMARTLOGGER_EXTERNAL_METER_PHASE_B_CURRENT = RegisterName("smartlogger_external_meter_phase_b_current")
+SMARTLOGGER_EXTERNAL_METER_PHASE_C_CURRENT = RegisterName("smartlogger_external_meter_phase_c_current")
+SMARTLOGGER_EXTERNAL_METER_ACTIVE_POWER = RegisterName("smartlogger_external_meter_active_power")
+SMARTLOGGER_EXTERNAL_METER_REACTIVE_POWER = RegisterName("smartlogger_external_meter_reactive_power")
+SMARTLOGGER_EXTERNAL_METER_ACTIVE_ELECTRICITY = RegisterName("smartlogger_external_meter_active_electricity")
+SMARTLOGGER_EXTERNAL_METER_POWER_FACTOR = RegisterName("smartlogger_external_meter_power_factor")
+SMARTLOGGER_EXTERNAL_METER_REACTIVE_ELECTRICITY = RegisterName("smartlogger_external_meter_reactive_electricity")
+SMARTLOGGER_EXTERNAL_METER_APPARENT_POWER = RegisterName("smartlogger_external_meter_apparent_power")
+SMARTLOGGER_EXTERNAL_METER_POSITIVE_ACTIVE_ELECTRICITY = RegisterName(
+    "smartlogger_external_meter_positive_active_electricity",
+)
+SMARTLOGGER_EXTERNAL_METER_POSITIVE_REACTIVE_ELECTRICITY = RegisterName(
+    "smartlogger_external_meter_positive_reactive_electricity",
+)
+SMARTLOGGER_EXTERNAL_METER_ELECTRICITY_IN_POSITIVE_ACTIVE_ELECTRICITY_PRICE_SEGMENT_1 = RegisterName(
+    "smartlogger_external_meter_electricity_in_positive_active_electricity_price_segment_1",
+)
+SMARTLOGGER_EXTERNAL_METER_ELECTRICITY_IN_POSITIVE_ACTIVE_ELECTRICITY_PRICE_SEGMENT_2 = RegisterName(
+    "smartlogger_external_meter_electricity_in_positive_active_electricity_price_segment_2",
+)
+SMARTLOGGER_EXTERNAL_METER_ELECTRICITY_IN_POSITIVE_ACTIVE_ELECTRICITY_PRICE_SEGMENT_3 = RegisterName(
+    "smartlogger_external_meter_electricity_in_positive_active_electricity_price_segment_3",
+)
+SMARTLOGGER_EXTERNAL_METER_ELECTRICITY_IN_POSITIVE_ACTIVE_ELECTRICITY_PRICE_SEGMENT_4 = RegisterName(
+    "smartlogger_external_meter_electricity_in_positive_active_electricity_price_segment_4",
+)
+SMARTLOGGER_EXTERNAL_METER_ELECTRICITY_IN_NEGATIVE_ACTIVE_ELECTRICITY_PRICE_SEGMENT_1 = RegisterName(
+    "smartlogger_external_meter_electricity_in_negative_active_electricity_price_segment_1",
+)
+SMARTLOGGER_EXTERNAL_METER_ELECTRICITY_IN_NEGATIVE_ACTIVE_ELECTRICITY_PRICE_SEGMENT_2 = RegisterName(
+    "smartlogger_external_meter_electricity_in_negative_active_electricity_price_segment_2",
+)
+SMARTLOGGER_EXTERNAL_METER_ELECTRICITY_IN_NEGATIVE_ACTIVE_ELECTRICITY_PRICE_SEGMENT_3 = RegisterName(
+    "smartlogger_external_meter_electricity_in_negative_active_electricity_price_segment_3",
+)
+SMARTLOGGER_EXTERNAL_METER_ELECTRICITY_IN_NEGATIVE_ACTIVE_ELECTRICITY_PRICE_SEGMENT_4 = RegisterName(
+    "smartlogger_external_meter_electricity_in_negative_active_electricity_price_segment_4",
+)
+SMARTLOGGER_EXTERNAL_METER_CUSTOM_1 = RegisterName("smartlogger_external_meter_custom_1")
+SMARTLOGGER_EXTERNAL_METER_CUSTOM_2 = RegisterName("smartlogger_external_meter_custom_2")
+SMARTLOGGER_EXTERNAL_METER_CUSTOM_3 = RegisterName("smartlogger_external_meter_custom_3")
+SMARTLOGGER_EXTERNAL_METER_CUSTOM_4 = RegisterName("smartlogger_external_meter_custom_4")
+SMARTLOGGER_EXTERNAL_METER_CUSTOM_5 = RegisterName("smartlogger_external_meter_custom_5")
+SMARTLOGGER_EXTERNAL_METER_CUSTOM_6 = RegisterName("smartlogger_external_meter_custom_6")
+SMARTLOGGER_EXTERNAL_METER_CUSTOM_7 = RegisterName("smartlogger_external_meter_custom_7")
+SMARTLOGGER_EXTERNAL_METER_CUSTOM_8 = RegisterName("smartlogger_external_meter_custom_8")
+SMARTLOGGER_EXTERNAL_METER_CUSTOM_9 = RegisterName("smartlogger_external_meter_custom_9")
+SMARTLOGGER_EXTERNAL_METER_CUSTOM_10 = RegisterName("smartlogger_external_meter_custom_10")
+SMARTLOGGER_EXTERNAL_METER_PHASE_A_ACTIVE_POWER = RegisterName("smartlogger_external_meter_phase_a_active_power")
+SMARTLOGGER_EXTERNAL_METER_PHASE_B_ACTIVE_POWER = RegisterName("smartlogger_external_meter_phase_b_active_power")
+SMARTLOGGER_EXTERNAL_METER_PHASE_C_ACTIVE_POWER = RegisterName("smartlogger_external_meter_phase_c_active_power")
+SMARTLOGGER_EXTERNAL_METER_TOTAL_ACTIVE_ELECTRICITY = RegisterName(
+    "smartlogger_external_meter_total_active_electricity",
+)
+SMARTLOGGER_EXTERNAL_METER_TOTAL_REACTIVE_ELECTRICITY = RegisterName(
+    "smartlogger_external_meter_total_reactive_electricity",
+)
+SMARTLOGGER_EXTERNAL_METER_NEGATIVE_ACTIVE_ELECTRICITY = RegisterName(
+    "smartlogger_external_meter_negative_active_electricity",
+)
+SMARTLOGGER_EXTERNAL_METER_NEGATIVE_REACTIVE_ELECTRICITY = RegisterName(
+    "smartlogger_external_meter_negative_reactive_electricity",
+)
+SMARTLOGGER_EXTERNAL_METER_POSITIVE_ACTIVE_ELECTRICITY = RegisterName(
+    "smartlogger_external_meter_positive_active_electricity",
+)
+SMARTLOGGER_EXTERNAL_METER_POSITIVE_REACTIVE_ELECTRICITY = RegisterName(
+    "smartlogger_external_meter_positive_reactive_electricity",
+)
