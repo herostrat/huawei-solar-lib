@@ -3,12 +3,13 @@
 import struct
 
 import pytest
-from huawei_solar.device import SUN2000Device
 from huawei_solar.modbus_client import AsyncHuaweiSolarClient
 from huawei_solar.register_values import StorageProductModel
 from tmodbus.pdu.base import RT, BaseClientPDU
 from tmodbus.pdu.holding_registers import RawReadHoldingRegistersPDU
 from tmodbus.transport.async_base import AsyncBaseTransport
+
+from huawei_solar.device import SUN2000Device
 
 MOCK_REGISTERS = {
     (30000, 25): [

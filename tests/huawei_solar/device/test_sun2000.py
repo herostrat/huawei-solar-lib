@@ -1,6 +1,7 @@
 """Tests for the SUN2000Device class."""
 
 import huawei_solar.register_names as rn
+
 from huawei_solar.device import SUN2000Device
 
 
