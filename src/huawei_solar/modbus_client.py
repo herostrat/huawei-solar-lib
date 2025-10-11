@@ -5,9 +5,8 @@ from typing import TypeVar
 
 import tenacity
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, stop_after_delay, wait_exponential
-from tmodbus import AsyncModbusClient, AsyncSmartTransport, AsyncTcpTransport, AsyncRtuTransport
+from tmodbus import AsyncModbusClient, AsyncRtuTransport, AsyncSmartTransport, AsyncTcpTransport
 from tmodbus.exceptions import ModbusResponseError, TModbusError
-from tmodbus.transport.async_smart import AsyncSmartTransport
 from tmodbus.utils.crc import calculate_crc16
 
 from .exceptions import ReadException
@@ -93,90 +92,6 @@ class AsyncHuaweiSolarClient(RegisterAwareModbusClient, AsyncModbusClient):
         if unit_id == self.unit_id:
             return self
         return AsyncHuaweiSolarClient(self.transport, unit_id=unit_id, word_order=self.word_order)
-
-    # @classmethod
-    # async def create(
-    #     cls,
-    #     host: str,
-    #     port: int = DEFAULT_TCP_PORT,
-    #     slave_id: int = DEFAULT_SLAVE_ID,
-    #     timeout: int = DEFAULT_TIMEOUT,  # noqa: ASYNC109
-    #     cooldown_time: float = DEFAULT_COOLDOWN_TIME,
-    # ) -> Self:
-    #     """Create an AsyncHuaweiSolar instance."""
-    #     client = create_async_tcp_client(
-    #         host,
-    #         port,
-    #         unit_id=slave_id,
-    #         timeout=timeout,
-    #         wait_between_requests=cooldown_time,
-    #         wait_after_connect=1.0,
-    #         auto_reconnect=RECONNECT_RETRY_STRATEGY,
-    #         response_retry_strategy=RESPONSE_RETRY_STRATEGY,
-    #         retry_on_device_busy=True,
-    #         retry_on_device_failure=True,
-    #     )
-
-    #     try:
-    #         await client.connect()
-    #     except Exception as err:
-    #         # if an error occurs, we need to make sure that the Modbus-client is stopped,
-    #         # otherwise it can stay active and cause even more problems ...
-    #         LOGGER.exception("Aborting client creation due to error")
-
-    #         try:
-    #             await client.disconnect()
-    #         except Exception:
-    #             LOGGER.exception("Error occurred while closing client. Ignoring")
-
-    #         raise ConnectionException from err
-    #     else:
-    #         return cls(client)
-
-    # @classmethod
-    # async def create_rtu(
-    #     cls,
-    #     port: str,
-    #     slave_id: int = DEFAULT_SLAVE_ID,
-    #     *,
-    #     cooldown_time: float = DEFAULT_COOLDOWN_TIME,
-    #     **serial_kwargs: Unpack[PySerialOptions],
-    # ) -> Self:
-    #     """Create a serial client."""
-    #     if "baudrate" not in serial_kwargs:
-    #         serial_kwargs["baudrate"] = DEFAULT_BAUDRATE
-
-    #     client = create_async_rtu_client(port, unit_id=slave_id, wait_between_requests=cooldown_time, **serial_kwargs)
-    #     try:
-    #         await client.connect()
-    #     except Exception as err:
-    #         # if an error occurs, we need to make sure that the Modbus-client is stopped,
-    #         # otherwise it can stay active and cause even more problems ...
-    #         LOGGER.exception("Aborting client creation due to error")
-
-    #         try:
-    #             await client.disconnect()
-    #         except Exception:
-    #             LOGGER.exception("Error occurred while closing client. Ignoring")
-
-    #         raise ConnectionException from err
-    #     else:
-    #         return cls(client)
-
-    # async def stop(self) -> None:
-    #     """Stop the modbus client."""
-    #     await self._client.disconnect()
-
-    # @property
-    # def unit_id(self) -> int:
-    #     """Get the unit ID."""
-    #     return self._client.unit_id
-
-    # def for_unit_id(self, unit_id: int) -> "AsyncHuaweiSolarClient":
-    #     """Get a copy of this client for a different unit ID."""
-    #     if unit_id == self.unit_id:
-    #         return self
-    #     return AsyncHuaweiSolarClient(self._client.for_unit_id(unit_id))
 
     async def get_file(
         self,
@@ -309,7 +224,7 @@ def create_tcp_client(
     port: int = DEFAULT_TCP_PORT,
     *,
     unit_id: int = DEFAULT_UNIT_ID,
-    timeout: int = DEFAULT_TIMEOUT,  # noqa: ASYNC109
+    timeout: int = DEFAULT_TIMEOUT,
     wait_after_connect: float = 1.0,
     wait_between_requests: float = DEFAULT_COOLDOWN_TIME,
 ) -> AsyncHuaweiSolarClient:

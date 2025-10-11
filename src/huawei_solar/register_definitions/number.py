@@ -42,25 +42,25 @@ class NumberRegister(RegisterDefinition[T | None], Generic[T]):
 
     def decode(self, values: tuple[Any, ...]) -> Result[T | None]:
         """Decode number register."""
-        result = values[0]
+        value = values[0]
 
-        if self.invalid_value is not None and result == self.invalid_value:
+        if self.invalid_value is not None and value == self.invalid_value:
             return Result(value=None, unit=None)
 
         if callable(self.unit):
             try:
-                return Result(self.unit(result), None)
+                return Result(self.unit(value), None)
             except ValueError as err:
                 raise DecodeError from err
         elif isinstance(self.unit, dict):
             try:
-                return Result(self.unit[result], None)
+                return Result(self.unit[value], None)
             except KeyError as err:
                 raise DecodeError from err
 
         if self.gain != 1:
-            result /= self.gain
-        return Result(result, self.unit)
+            value /= self.gain
+        return Result(value, self.unit)
 
     def encode(self, data: T | None) -> tuple[Any, ...]:
         """Encode number register."""
@@ -182,7 +182,7 @@ class I32AbsoluteValueRegister(I32Register):
         return Result(abs(result.value), result.unit) if result.value is not None else result
 
 
-class TimestampRegister(NumberRegister[datetime]):
+class TimestampRegister(NumberRegister[datetime | None]):
     """Timestamp register."""
 
     format = U32Register.format
@@ -210,9 +210,11 @@ class TimestampRegister(NumberRegister[datetime]):
     def decode(self, values: tuple[Any, ...]) -> Result[datetime | None]:
         """Decode timestamp register."""
         value = values[0]
-        if value == self.invalid_value:
-            return Result(None, None)
 
-        # I was unable to come up with a good way of determining in which time
-        # zone this value is. So we return it without one.
-        return Result(datetime.fromtimestamp(value), None)  # noqa: DTZ006
+        timestamp_value = None
+        if value != self.invalid_value:
+            # I was unable to come up with a good way of determining in which time
+            # zone this value is. So we return it without one.
+            timestamp_value = datetime.fromtimestamp(value)  # noqa: DTZ006
+
+        return Result(timestamp_value, None)

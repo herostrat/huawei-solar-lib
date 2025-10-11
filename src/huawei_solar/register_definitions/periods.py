@@ -128,7 +128,7 @@ class LG_RESU_TimeOfUseRegisters(RegisterDefinition[list[LG_RESU_TimeOfUsePeriod
                     period.start_time,
                     period.end_time,
                     int(period.electricity_price * 1000),
-                ]
+                ],
             )
 
         values.extend([0, 0, 0] * (LG_RESU_TOU_PERIODS - len(data)))

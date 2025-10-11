@@ -246,30 +246,30 @@ STORAGE_UNIT_1_BATTERY_PACK_1_SOH_CALIBRATION_STATUS = RegisterName(
     "storage_unit_1_battery_pack_1_soh_calibration_status",
 )
 STORAGE_UNIT_1_BATTERY_PACK_2_SOH_CALIBRATION_STATUS = RegisterName(
-    "storage_unit_1_battery_pack_2_soh_calibration_status"
+    "storage_unit_1_battery_pack_2_soh_calibration_status",
 )
 STORAGE_UNIT_1_BATTERY_PACK_3_SOH_CALIBRATION_STATUS = RegisterName(
-    "storage_unit_1_battery_pack_3_soh_calibration_status"
+    "storage_unit_1_battery_pack_3_soh_calibration_status",
 )
 STORAGE_UNIT_2_BATTERY_PACK_1_SOH_CALIBRATION_STATUS = RegisterName(
-    "storage_unit_2_battery_pack_1_soh_calibration_status"
+    "storage_unit_2_battery_pack_1_soh_calibration_status",
 )
 STORAGE_UNIT_2_BATTERY_PACK_2_SOH_CALIBRATION_STATUS = RegisterName(
-    "storage_unit_2_battery_pack_2_soh_calibration_status"
+    "storage_unit_2_battery_pack_2_soh_calibration_status",
 )
 STORAGE_UNIT_2_BATTERY_PACK_3_SOH_CALIBRATION_STATUS = RegisterName(
-    "storage_unit_2_battery_pack_3_soh_calibration_status"
+    "storage_unit_2_battery_pack_3_soh_calibration_status",
 )
 STORAGE_UNIT_SOH_CALIBRATION_STATUS = RegisterName("storage_unit_soh_calibration_status")
 STORAGE_UNIT_SOH_CALIBRATION_RELEASE_LOWER_LIMIT_OF_SOC = RegisterName(
-    "storage_unit_soh_calibration_release_lower_limit_of_soc"
+    "storage_unit_soh_calibration_release_lower_limit_of_soc",
 )
 STORAGE_UNIT_1_BATTERY_PACK_1_SERIAL_NUMBER = RegisterName("storage_unit_1_battery_pack_1_serial_number")
 STORAGE_UNIT_1_BATTERY_PACK_1_FIRMWARE_VERSION = RegisterName("storage_unit_1_battery_pack_1_firmware_version")
 STORAGE_UNIT_1_BATTERY_PACK_1_WORKING_STATUS = RegisterName("storage_unit_1_battery_pack_1_working_status")
 STORAGE_UNIT_1_BATTERY_PACK_1_STATE_OF_CAPACITY = RegisterName("storage_unit_1_battery_pack_1_state_of_capacity")
 STORAGE_UNIT_1_BATTERY_PACK_1_CHARGE_DISCHARGE_POWER = RegisterName(
-    "storage_unit_1_battery_pack_1_charge_discharge_power"
+    "storage_unit_1_battery_pack_1_charge_discharge_power",
 )
 STORAGE_UNIT_1_BATTERY_PACK_1_VOLTAGE = RegisterName("storage_unit_1_battery_pack_1_voltage")
 STORAGE_UNIT_1_BATTERY_PACK_1_CURRENT = RegisterName("storage_unit_1_battery_pack_1_current")
@@ -280,7 +280,7 @@ STORAGE_UNIT_1_BATTERY_PACK_2_FIRMWARE_VERSION = RegisterName("storage_unit_1_ba
 STORAGE_UNIT_1_BATTERY_PACK_2_WORKING_STATUS = RegisterName("storage_unit_1_battery_pack_2_working_status")
 STORAGE_UNIT_1_BATTERY_PACK_2_STATE_OF_CAPACITY = RegisterName("storage_unit_1_battery_pack_2_state_of_capacity")
 STORAGE_UNIT_1_BATTERY_PACK_2_CHARGE_DISCHARGE_POWER = RegisterName(
-    "storage_unit_1_battery_pack_2_charge_discharge_power"
+    "storage_unit_1_battery_pack_2_charge_discharge_power",
 )
 STORAGE_UNIT_1_BATTERY_PACK_2_VOLTAGE = RegisterName("storage_unit_1_battery_pack_2_voltage")
 STORAGE_UNIT_1_BATTERY_PACK_2_CURRENT = RegisterName("storage_unit_1_battery_pack_2_current")
@@ -291,7 +291,7 @@ STORAGE_UNIT_1_BATTERY_PACK_3_FIRMWARE_VERSION = RegisterName("storage_unit_1_ba
 STORAGE_UNIT_1_BATTERY_PACK_3_WORKING_STATUS = RegisterName("storage_unit_1_battery_pack_3_working_status")
 STORAGE_UNIT_1_BATTERY_PACK_3_STATE_OF_CAPACITY = RegisterName("storage_unit_1_battery_pack_3_state_of_capacity")
 STORAGE_UNIT_1_BATTERY_PACK_3_CHARGE_DISCHARGE_POWER = RegisterName(
-    "storage_unit_1_battery_pack_3_charge_discharge_power"
+    "storage_unit_1_battery_pack_3_charge_discharge_power",
 )
 STORAGE_UNIT_1_BATTERY_PACK_3_VOLTAGE = RegisterName("storage_unit_1_battery_pack_3_voltage")
 STORAGE_UNIT_1_BATTERY_PACK_3_CURRENT = RegisterName("storage_unit_1_battery_pack_3_current")
@@ -302,7 +302,7 @@ STORAGE_UNIT_2_BATTERY_PACK_1_FIRMWARE_VERSION = RegisterName("storage_unit_2_ba
 STORAGE_UNIT_2_BATTERY_PACK_1_WORKING_STATUS = RegisterName("storage_unit_2_battery_pack_1_working_status")
 STORAGE_UNIT_2_BATTERY_PACK_1_STATE_OF_CAPACITY = RegisterName("storage_unit_2_battery_pack_1_state_of_capacity")
 STORAGE_UNIT_2_BATTERY_PACK_1_CHARGE_DISCHARGE_POWER = RegisterName(
-    "storage_unit_2_battery_pack_1_charge_discharge_power"
+    "storage_unit_2_battery_pack_1_charge_discharge_power",
 )
 STORAGE_UNIT_2_BATTERY_PACK_1_VOLTAGE = RegisterName("storage_unit_2_battery_pack_1_voltage")
 STORAGE_UNIT_2_BATTERY_PACK_1_CURRENT = RegisterName("storage_unit_2_battery_pack_1_current")
@@ -313,7 +313,7 @@ STORAGE_UNIT_2_BATTERY_PACK_2_FIRMWARE_VERSION = RegisterName("storage_unit_2_ba
 STORAGE_UNIT_2_BATTERY_PACK_2_WORKING_STATUS = RegisterName("storage_unit_2_battery_pack_2_working_status")
 STORAGE_UNIT_2_BATTERY_PACK_2_STATE_OF_CAPACITY = RegisterName("storage_unit_2_battery_pack_2_state_of_capacity")
 STORAGE_UNIT_2_BATTERY_PACK_2_CHARGE_DISCHARGE_POWER = RegisterName(
-    "storage_unit_2_battery_pack_2_charge_discharge_power"
+    "storage_unit_2_battery_pack_2_charge_discharge_power",
 )
 STORAGE_UNIT_2_BATTERY_PACK_2_VOLTAGE = RegisterName("storage_unit_2_battery_pack_2_voltage")
 STORAGE_UNIT_2_BATTERY_PACK_2_CURRENT = RegisterName("storage_unit_2_battery_pack_2_current")
@@ -324,7 +324,7 @@ STORAGE_UNIT_2_BATTERY_PACK_3_FIRMWARE_VERSION = RegisterName("storage_unit_2_ba
 STORAGE_UNIT_2_BATTERY_PACK_3_WORKING_STATUS = RegisterName("storage_unit_2_battery_pack_3_working_status")
 STORAGE_UNIT_2_BATTERY_PACK_3_STATE_OF_CAPACITY = RegisterName("storage_unit_2_battery_pack_3_state_of_capacity")
 STORAGE_UNIT_2_BATTERY_PACK_3_CHARGE_DISCHARGE_POWER = RegisterName(
-    "storage_unit_2_battery_pack_3_charge_discharge_power"
+    "storage_unit_2_battery_pack_3_charge_discharge_power",
 )
 STORAGE_UNIT_2_BATTERY_PACK_3_VOLTAGE = RegisterName("storage_unit_2_battery_pack_3_voltage")
 STORAGE_UNIT_2_BATTERY_PACK_3_CURRENT = RegisterName("storage_unit_2_battery_pack_3_current")
@@ -354,7 +354,7 @@ ACTIVE_POWER_FIXED_VALUE_DERATING = RegisterName("active_power_fixed_value_derat
 REACTIVE_POWER_COMPENSATION_AT_NIGHT = RegisterName("reactive_power_compensation_at_night")
 FIXED_REACTIVE_POWER_AT_NIGHT = RegisterName("fixed_reactive_power_at_night")
 CHARACTERISTIC_CURVE_REACTIVE_POWER_ADJUSTMENT_TIME = RegisterName(
-    "characteristic_curve_reactive_power_adjustment_time"
+    "characteristic_curve_reactive_power_adjustment_time",
 )
 PERCENT_APPARENT_POWER = RegisterName("percent_apparent_power")
 Q_U_SCHEDULING_EXIT_POWER_PERCENTAGE = RegisterName("q_u_scheduling_exit_power_percentage")
@@ -397,7 +397,7 @@ STORAGE_FORCIBLE_CHARGE_DISCHARGE_SETTING_MODE = RegisterName("storage_forcible_
 STORAGE_FORCIBLE_CHARGE_POWER = RegisterName("storage_forcible_charge_power")
 STORAGE_FORCIBLE_DISCHARGE_POWER = RegisterName("storage_forcible_discharge_power")
 STORAGE_HUAWEI_LUNA2000_TIME_OF_USE_CHARGING_AND_DISCHARGING_PERIODS = RegisterName(
-    "storage_huawei_luna2000_time_of_use_charging_and_discharging_periods"
+    "storage_huawei_luna2000_time_of_use_charging_and_discharging_periods",
 )
 STORAGE_EXCESS_PV_ENERGY_USE_IN_TOU = RegisterName("storage_excess_pv_energy_use_in_tou")
 ACTIVE_POWER_CONTROL_MODE = RegisterName("active_power_control_mode")
@@ -502,10 +502,10 @@ PHASE_B_ACTIVE_POWER_BUILT_IN_ENERGY_SENSOR = RegisterName("phase_b_active_power
 PHASE_C_ACTIVE_POWER_BUILT_IN_ENERGY_SENSOR = RegisterName("phase_c_active_power_built_in_energy_sensor")
 TOTAL_ACTIVE_ENERGY_BUILT_IN_ENERGY_SENSOR = RegisterName("total_active_energy_built_in_energy_sensor")
 TOTAL_NEGATIVE_ACTIVE_ENERGY_BUILT_IN_ENERGY_SENSOR = RegisterName(
-    "total_negative_active_energy_built_in_energy_sensor"
+    "total_negative_active_energy_built_in_energy_sensor",
 )
 TOTAL_POSITIVE_ACTIVE_ENERGY_BUILT_IN_ENERGY_SENSOR = RegisterName(
-    "total_positive_active_energy_built_in_energy_sensor"
+    "total_positive_active_energy_built_in_energy_sensor",
 )
 PHASE_A_VOLTAGE_EXTERNAL_ENERGY_SENSOR = RegisterName("phase_a_voltage_external_energy_sensor")
 PHASE_B_VOLTAGE_EXTERNAL_ENERGY_SENSOR = RegisterName("phase_b_voltage_external_energy_sensor")
@@ -524,15 +524,15 @@ PHASE_B_ACTIVE_POWER_EXTERNAL_ENERGY_SENSOR = RegisterName("phase_b_active_power
 PHASE_C_ACTIVE_POWER_EXTERNAL_ENERGY_SENSOR = RegisterName("phase_c_active_power_external_energy_sensor")
 TOTAL_ACTIVE_ENERGY_EXTERNAL_ENERGY_SENSOR = RegisterName("total_active_energy_external_energy_sensor")
 TOTAL_NEGATIVE_ACTIVE_ENERGY_EXTERNAL_ENERGY_SENSOR = RegisterName(
-    "total_negative_active_energy_external_energy_sensor"
+    "total_negative_active_energy_external_energy_sensor",
 )
 TOTAL_POSITIVE_ACTIVE_ENERGY_EXTERNAL_ENERGY_SENSOR = RegisterName(
-    "total_positive_active_energy_external_energy_sensor"
+    "total_positive_active_energy_external_energy_sensor",
 )
 EMMA_ESS_CONTROL_MODE = RegisterName("emma_ess_control_mode")
 EMMA_TOU_PREFERRED_USE_OF_SURPLUS_PV_POWER = RegisterName("emma_tou_preferred_use_of_surplus_pv_power")
 EMMA_TOU_MAXIMUNM_POWER_FOR_CHARGING_BATTERIES_FROM_GRID = RegisterName(
-    "emma_tou_maximunm_power_for_charging_batteries_from_grid"
+    "emma_tou_maximunm_power_for_charging_batteries_from_grid",
 )
 EMMA_POWER_CONTROL_MODE_AT_GRID_CONNECTION_POINT = RegisterName("emma_power_control_mode_at_grid_connection_point")
 EMMA_LIMITATION_MODE = RegisterName("emma_limitation_mode")

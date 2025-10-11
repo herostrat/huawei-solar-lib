@@ -105,7 +105,7 @@ class OptimizerRealTimeDataFile:
 
         has_next_optimizer_data_unit = True
         while has_next_optimizer_data_unit:
-            (time, length, number_of_optimizers) = struct.unpack_from(
+            (time, _length, number_of_optimizers) = struct.unpack_from(
                 OptimizerRealTimeDataFile.OPTIMIZER_DATA_UNIT,
                 file_data,
                 offset,

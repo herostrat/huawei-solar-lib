@@ -21,7 +21,7 @@ class SChargerDevice(HuaweiSolarDevice):
         (
             serial_number_result,
             software_version_result,
-        ) = await self.get_multiple(
+        ) = await self.client.get_multiple(
             [
                 rn.CHARGER_ESN,
                 rn.CHARGER_SOFTWARE_VERSION,
