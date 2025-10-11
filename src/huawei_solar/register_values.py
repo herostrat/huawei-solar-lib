@@ -46,7 +46,7 @@ DEVICE_STATUS_DEFINITIONS = {
     0x0307: "Shutdown: rapid cutoff",
     0x0308: "Shutdown: input underpowered",
     # cfr. https://github.com/wlcrs/huawei_solar/issues/1124
-    0x030c: "Shutdown: ESS end-of-discharge",
+    0x030C: "Shutdown: ESS end-of-discharge",
     0x0401: "Grid scheduling: cosphi-P curve",
     0x0402: "Grid scheduling: Q-U curve",
     0x0403: "Grid scheduling: PF-U curve",

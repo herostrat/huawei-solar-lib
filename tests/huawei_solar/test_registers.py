@@ -1,4 +1,4 @@
-"""check if the register config is correct"""
+"""Check if the register config is correct."""
 
 import logging
 
@@ -8,8 +8,8 @@ from huawei_solar.registers import REGISTERS
 _LOGGER = logging.getLogger(__name__)
 
 
-def test_register_config():
-    """Parse all REGISTERS and check for correct order and potential overlaps"""
+def test_register_config() -> None:
+    """Parse all REGISTERS and check for correct order and potential overlaps."""
     registers = [r for r in REGISTERS.values() if TargetDevice.SUN2000 in r.target_device]
     registers.sort(key=lambda x: x.register)
 
@@ -31,8 +31,8 @@ def test_register_config():
             )
 
 
-def test_register_config_emma():
-    """Parse all REGISTERS and check for correct order and potential overlaps"""
+def test_register_config_emma() -> None:
+    """Parse all REGISTERS and check for correct order and potential overlaps."""
     registers = [r for r in REGISTERS.values() if TargetDevice.EMMA in r.target_device]
     registers.sort(key=lambda x: x.register)
 

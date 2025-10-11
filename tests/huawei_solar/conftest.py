@@ -1,13 +1,14 @@
+"""Pytest configuration and fixtures for huawei-solar tests."""
+
 import struct
 
 import pytest
-from tmodbus.pdu.base import RT, BaseClientPDU
-from tmodbus.pdu.holding_registers import RawReadHoldingRegistersPDU
-from tmodbus.transport.async_base import AsyncBaseTransport
-
 from huawei_solar.device import SUN2000Device
 from huawei_solar.modbus_client import AsyncHuaweiSolarClient
 from huawei_solar.register_values import StorageProductModel
+from tmodbus.pdu.base import RT, BaseClientPDU
+from tmodbus.pdu.holding_registers import RawReadHoldingRegistersPDU
+from tmodbus.transport.async_base import AsyncBaseTransport
 
 MOCK_REGISTERS = {
     (30000, 25): [
@@ -125,24 +126,27 @@ class MockTransport(AsyncBaseTransport):
         """Mock is transport open."""
         return True
 
-    async def send_and_receive(self, unit_id: int, pdu: BaseClientPDU[RT]) -> RT:
+    async def send_and_receive(self, unit_id: int, pdu: BaseClientPDU[RT]) -> RT:  # noqa: ARG002
         """Mock send and receive."""
-
         if isinstance(pdu, RawReadHoldingRegistersPDU):
             key = (pdu.start_address, pdu.quantity)
             if mock_register := MOCK_REGISTERS.get(key):
-                return struct.pack(f">{'H' * pdu.quantity}", *mock_register)  # type: ignore
-            raise Exception(f"MockTransport: No mock data for {key}")
-        raise Exception(f"MockTransport: Unsupported PDU type {type(pdu)}")
+                return struct.pack(f">{'H' * pdu.quantity}", *mock_register)  # type: ignore[return-value]
+            msg = f"MockTransport: No mock data for {key}"
+            raise ValueError(msg)
+        msg = f"MockTransport: Unsupported PDU type {type(pdu)}"
+        raise ValueError(msg)
 
 
 @pytest.fixture
 def huawei_solar() -> AsyncHuaweiSolarClient:
-    return AsyncHuaweiSolarClient(transport=MockTransport(), unit_id=1)  # type: ignore[report-argument-type]
+    """Create a mock AsyncHuaweiSolarClient for testing."""
+    return AsyncHuaweiSolarClient(transport=MockTransport(), unit_id=1)
 
 
 @pytest.fixture
 def sun2000_device(huawei_solar: AsyncHuaweiSolarClient) -> SUN2000Device:
+    """Create a mock SUN2000Device for testing."""
     sun2000_device = SUN2000Device(
         client=huawei_solar,
         model_name="SUN2000-9KTL-123",
