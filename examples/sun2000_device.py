@@ -1,6 +1,4 @@
-# ruff: noqa: T201
-
-"""Test file for HuaweiSolarBridge."""
+"""Test file for SUN2000Device."""
 
 import asyncio
 import logging
