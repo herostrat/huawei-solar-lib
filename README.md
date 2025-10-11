@@ -1,7 +1,7 @@
 [![Homepage](https://img.shields.io/badge/Homepage-2088ff?logo=github&logoColor=white)](https://github.com/wlcrs/huawei-solar-lib)
 [![GitHub License](https://img.shields.io/github/license/wlcrs/huawei-solar-lib)](https://github.com/wlcrs/huawei-solar-lib/blob/main/LICENSE)
 [![Release](https://img.shields.io/github/v/release/wlcrs/huawei-solar-lib.svg)](https://github.com/wlcrs/huawei-solar-lib/releases)
-[![Python Versions](https://img.shields.io/pypi/pyversions/huawei-solar-lib)](https://pypi.org/p/huawei-solar-lib/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/huawei-solar)](https://pypi.org/p/huawei-solar/)
 [![Testing](https://github.com/wlcrs/huawei-solar-lib/actions/workflows/tests.yml/badge.svg)](https://github.com/wlcrs/huawei-solar-lib/actions/workflows/tests.yml)
 
 
