@@ -18,7 +18,7 @@ def test_register_config(target_device: TargetDevice) -> None:
     registers.sort(key=lambda x: x.register)
 
     for idx in range(1, len(registers)):
-        if registers[idx].register in [32066, 32072, 40000, 47028, 47255]:
+        if registers[idx].register in [32066, 32072, 40000]:
             # skip these registers, as they have multiple entries
             continue
         if registers[idx - 1].register + registers[idx - 1].length > registers[idx].register:
