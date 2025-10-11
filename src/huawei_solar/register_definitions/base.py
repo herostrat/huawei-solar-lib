@@ -5,7 +5,7 @@ from abc import ABC
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Flag, auto
-from typing import Any, Generic, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from huawei_solar.exceptions import DecodeError
 
@@ -25,14 +25,14 @@ class TargetDevice(Flag):
 
 
 @dataclass(frozen=True)
-class Result(Generic[T]):
+class Result[T]:
     """Modbus register value."""
 
     value: T
     unit: str | None
 
 
-class RegisterDefinition(ABC, Generic[T]):
+class RegisterDefinition[T](ABC):
     """Base class for register definitions."""
 
     format: str
@@ -40,7 +40,7 @@ class RegisterDefinition(ABC, Generic[T]):
     """Number of values returned by the struct format."""
     length: int
 
-    unit: UnitType = None
+    unit: UnitType[T] = None
 
     def __init__(
         self,

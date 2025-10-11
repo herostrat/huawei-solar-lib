@@ -297,7 +297,9 @@ class CompleteUploadPDU(BaseSubFunctionClientPDU[int]):
 
     def decode_response(self, response: bytes) -> int:
         """Decode CompleteUploadModbusResponse."""
+        file_crc: int
         function_code, sub_function_code, data_length, file_type, file_crc = struct.unpack(">BBBBH", response)
+
         if function_code != self.function_code:
             msg = f"Invalid function code: expected {self.function_code:02x}, received {function_code:02x}"
             raise ValueError(msg)

@@ -3,14 +3,14 @@
 from datetime import datetime
 from enum import IntEnum
 from inspect import isclass
-from typing import Any, Generic
+from typing import Any
 
 from huawei_solar.exceptions import DecodeError, WriteException
 
-from .base import RegisterDefinition, Result, T, TargetDevice, UnitType
+from .base import RegisterDefinition, Result, TargetDevice, UnitType
 
 
-class NumberRegister(RegisterDefinition[T | None], Generic[T]):
+class NumberRegister[T](RegisterDefinition[T | None]):
     """Base class for number registers."""
 
     invalid_value: int | None
@@ -18,7 +18,7 @@ class NumberRegister(RegisterDefinition[T | None], Generic[T]):
 
     def __init__(
         self,
-        unit: UnitType,
+        unit: UnitType[Any],
         gain: int,
         register: int,
         *,
@@ -102,7 +102,7 @@ class U16Register(NumberRegister[int]):
 
     def __init__(  # noqa: PLR0913
         self,
-        unit: UnitType,
+        unit: UnitType[Any],
         gain: int,
         register: int,
         *,

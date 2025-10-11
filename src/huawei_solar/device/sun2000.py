@@ -3,6 +3,7 @@
 import logging
 from contextlib import suppress
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from huawei_solar import register_names as rn
 from huawei_solar import register_values as rv
@@ -140,7 +141,7 @@ class SUN2000Device(HuaweiSolarDeviceWithLogin):
 
         raise exc
 
-    def _detect_state_changes(self, new_values: dict[rn.RegisterName, Result]) -> None:
+    def _detect_state_changes(self, new_values: dict[rn.RegisterName, Result[Any]]) -> None:
         """Update state based on result of batch_update query.
 
         Used by subclasses to detect important changes.
@@ -190,7 +191,7 @@ class SUN2000Device(HuaweiSolarDeviceWithLogin):
 
         return result
 
-    def _transform_register_values(self, register_name: rn.RegisterName, result: Result) -> Result:
+    def _transform_register_values(self, register_name: rn.RegisterName, result: Result[Any]) -> Result[Any]:
         if isinstance(REGISTERS[register_name], TimestampRegister) and result.value is not None:
             assert isinstance(result.value, datetime)
             value = result.value
@@ -210,9 +211,9 @@ class SUN2000Device(HuaweiSolarDeviceWithLogin):
             # Inverters don't return their own system time when connected via EMMA.
             # Instead, we need to read the system time from the EMMA device.
 
-            return (await self.primary_device.get(rn.EMMA_SYSTEM_TIME)).value
+            return (await self.primary_device.get(rn.EMMA_SYSTEM_TIME)).value  # type: ignore[no-any-return]
 
-        return (await self.get(rn.SYSTEM_TIME_RAW)).value
+        return (await self.get(rn.SYSTEM_TIME_RAW)).value  # type: ignore[no-any-return]
 
     async def get_latest_optimizer_history_data(
         self,

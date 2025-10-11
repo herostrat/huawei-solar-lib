@@ -17,8 +17,7 @@ from huawei_solar.modbus_pdu import PermissionDeniedError
 from huawei_solar.registers import REGISTERS
 
 if TYPE_CHECKING:
-    from huawei_solar.register_definitions import Result
-    from huawei_solar.registers import RegisterDefinition
+    from huawei_solar.register_definitions import RegisterDefinition, Result
 
 
 LOGGER = logging.getLogger(__name__)
@@ -27,7 +26,7 @@ LOGGER = logging.getLogger(__name__)
 class RegisterAwareModbusClient(AsyncModbusClient):
     """A Modbus client that knows about registers."""
 
-    def _get_register_definitions(self, names: list[rn.RegisterName]) -> "list[RegisterDefinition]":
+    def _get_register_definitions(self, names: list[rn.RegisterName]) -> "list[RegisterDefinition[Any]]":
         """Get register definitions by name."""
         unknown_register_names = set(names) - REGISTERS.keys()
         if unknown_register_names:
@@ -36,7 +35,11 @@ class RegisterAwareModbusClient(AsyncModbusClient):
 
         return [REGISTERS[name] for name in names]
 
-    def _validate_registers_readable(self, names: list[rn.RegisterName], registers: "list[RegisterDefinition]") -> None:
+    def _validate_registers_readable(
+        self,
+        names: list[rn.RegisterName],
+        registers: "list[RegisterDefinition[Any]]",
+    ) -> None:
         """Validate whether the requested registers are readable."""
         unreadable_register_names = [
             register_name for register, register_name in zip(registers, names, strict=False) if not register.readable
@@ -45,7 +48,7 @@ class RegisterAwareModbusClient(AsyncModbusClient):
             msg = f"Trying to read unreadable registers: {', '.join(unreadable_register_names)}"
             raise ValueError(msg)
 
-    def _construct_struct_format(self, registers: "list[RegisterDefinition]") -> str:
+    def _construct_struct_format(self, registers: "list[RegisterDefinition[Any]]") -> str:
         """Construct a struct format to interpret the registers content with."""
         struct_format = f">{registers[0].format}"
         for idx in range(1, len(registers)):
@@ -68,9 +71,9 @@ class RegisterAwareModbusClient(AsyncModbusClient):
 
     def _decode_response_tuple(
         self,
-        registers: "list[RegisterDefinition]",
+        registers: "list[RegisterDefinition[Any]]",
         response: tuple[Any, ...],
-    ) -> "list[Result]":
+    ) -> "list[Result[Any]]":
         """Decode response tuple."""
         result = []
         tuple_idx = 0
@@ -81,7 +84,7 @@ class RegisterAwareModbusClient(AsyncModbusClient):
 
         return result
 
-    async def get_multiple(self, names: list[rn.RegisterName]) -> "list[Result]":
+    async def get_multiple(self, names: list[rn.RegisterName]) -> "list[Result[Any]]":
         """Read multiple registers at the same time.
 
         This is only possible if the registers are consecutively available in the
@@ -100,7 +103,7 @@ class RegisterAwareModbusClient(AsyncModbusClient):
 
         return self._decode_response_tuple(registers, response_tuple)
 
-    async def get_multiple_as_dict(self, names: list[rn.RegisterName]) -> "dict[rn.RegisterName, Result]":
+    async def get_multiple_as_dict(self, names: list[rn.RegisterName]) -> "dict[rn.RegisterName, Result[Any]]":
         """Read multiple registers and return them as a dictionary.
 
         This is only possible if the registers are consecutively available in the
@@ -114,7 +117,7 @@ class RegisterAwareModbusClient(AsyncModbusClient):
             ),
         )
 
-    async def get(self, name: rn.RegisterName) -> "Result":
+    async def get(self, name: rn.RegisterName) -> "Result[Any]":
         """Get named register from device."""
         return (await self.get_multiple([name]))[0]
 
@@ -136,7 +139,7 @@ class RegisterAwareModbusClient(AsyncModbusClient):
 
         return await self._write_registers(reg, reg.encode(value))
 
-    def _validate_data_to_write(self, register: "RegisterDefinition", values: tuple[Any, ...]) -> None:
+    def _validate_data_to_write(self, register: "RegisterDefinition[Any]", values: tuple[Any, ...]) -> None:
         """Validate if the data to write is valid."""
         encoded_value_to_write = struct.pack(f">{register.format}", *values)
         if len(encoded_value_to_write) != register.length * 2:  # 2 bytes per register
@@ -145,7 +148,7 @@ class RegisterAwareModbusClient(AsyncModbusClient):
 
     async def _write_registers(
         self,
-        register: "RegisterDefinition",
+        register: "RegisterDefinition[Any]",
         values: tuple[Any, ...],
     ) -> bool:
         """Async write register to device."""
@@ -161,7 +164,7 @@ class RegisterAwareModbusClient(AsyncModbusClient):
 
                 response = await self.write_single_register(register.register, values[0])
 
-                success = response == values[0]
+                success: bool = response == values[0]
             else:
                 LOGGER.debug(
                     "Writing to %d: values '%s' on server %d",

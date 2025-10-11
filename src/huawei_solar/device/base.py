@@ -82,7 +82,7 @@ class HuaweiSolarDevice(ABC):
         """Handle read errors in get."""
         raise exc
 
-    def _detect_state_changes(self, new_values: "dict[rn.RegisterName, Result]") -> None:  # noqa: B027
+    def _detect_state_changes(self, new_values: "dict[rn.RegisterName, Result[Any]]") -> None:  # noqa: B027
         """Update state based on result of batch_update query.
 
         Used by subclasses to detect important changes.
@@ -98,12 +98,12 @@ class HuaweiSolarDevice(ABC):
     def _transform_register_values(
         self,
         register_name: rn.RegisterName,  # noqa: ARG002
-        result: "Result",
-    ) -> "Result":
+        result: "Result[Any]",
+    ) -> "Result[Any]":
         """Optionally Transform the value of a register before returning it."""
         return result
 
-    async def batch_update(self, register_names: list[rn.RegisterName]) -> "dict[rn.RegisterName, Result]":
+    async def batch_update(self, register_names: list[rn.RegisterName]) -> "dict[rn.RegisterName, Result[Any]]":
         """Efficiently retrieve the values of all the registers passed in register_names.
 
         This method adds intelligence on top of read_multiple to only batch together
@@ -184,7 +184,7 @@ class HuaweiSolarDevice(ABC):
 
         return True
 
-    async def get(self, name: rn.RegisterName) -> "Result":
+    async def get(self, name: rn.RegisterName) -> "Result[Any]":
         """Get the value of a certain register."""
         return await self.client.get(name)
 
@@ -198,7 +198,7 @@ class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
 
     __login_lock = asyncio.Lock()
     __heartbeat_enabled = False
-    __heartbeat_task: asyncio.Task | None = None
+    __heartbeat_task: asyncio.Task[None] | None = None
 
     __username: str | None = None
     __password: str | None = None

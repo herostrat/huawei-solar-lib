@@ -1,90 +1,116 @@
 [project]
 name = "huawei-solar"
 description = "A Python wrapper for the Huawei Inverter modbus TCP API"
-readme = "README.md"
-
+license = { file = "LICENSE.md" }
 authors = [
-  { name = "Emil Vanherp", email = "emil@vanherp.me" },
-  { name = "Thijs Walcarius" },
+    { name = "wlcrs" },
+    { name = "Emil Vanherp", email = "emil@vanherp.me" },
 ]
-license = { file="LICENSE.md" }
-keywords = ["huawei", "solar", "sun2000", "inverter", "battery", "modbus", "modbus-tcp", "modbus-rtu"]
+readme = "README.md"
+requires-python = ">= 3.12"
+keywords = [
+    "huawei",
+    "solar",
+    "sun2000",
+    "inverter",
+    "battery",
+    "modbus",
+    "modbus-tcp",
+    "modbus-rtu",
+]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: GNU Affero General Public License v3",
-    "Topic :: Home Automation",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Home Automation",
+    "Typing :: Typed",
 
 ]
 
 dynamic = ["version"]
 
-requires-python = ">= 3.11"
-
-dependencies = [
-    "pyserial-asyncio>=0.6",
-    "backoff",
-    "pytz",
-]
+dependencies = ["tmodbus[async-serial]>=0.2.1"]
 
 [project.urls]
-Homepage = "https://gitlab.com/EmilV2/huawei-solar"
+Homepage = "https://github.com/wlcrs/huawei-solar-lib"
+Repository = "https://github.com/wlcrs/huawei-solar-lib"
+Issues = "https://github.com/wlcrs/huawei-solar-lib/issues"
+Changelog = "https://github.com/wlcrs/huawei-solar-lib/releases"
 
-[dependency-groups]
-
-dev = [
-    "tox>=4.15",
-    "pre-commit",
-    "pytest",
-    "pytest-asyncio",
-]
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build.targets.wheel]
+only-packages = true
+
 [tool.hatch.version]
 source = "vcs"
-path = "src/huawei_solar/version.py"
-
 
 [tool.ruff]
 line-length = 120
 
 [tool.ruff.lint]
-select = [
-    "ALL"
-]
+select = ["ALL"]
 
 ignore = [
     "D203", # 1 blank line required before class docstring
     "D213", # Multi-line docstring summary should start at the second line
 
-    "S101", # allow asserts
+    "S101",   # allow asserts
     "TRY003", # allow exceptions with longer messages.
 ]
 
 pylint.max-args = 6
 
-[tool.ruff.lint.per-file-ignores]
-"tests/*" = [
-    "D",
-    "S101", # asserts allowed in tests...
-    "ANN201", 
-    "ARG", # Unused function args -> fixtures nevertheless are functionally relevant...
-    "FBT", # Don't care about booleans as positional arguments in tests, e.g. via @pytest.mark.parametrize()
-    # The below are debatable
-    "PLR2004", # Magic value used in comparison, ...
-    "SLF001", # access to private members
-    "N802"
-]
+[tool.mypy]
+# Specify the target platform details in config, so your developers are
+# free to run mypy on Windows, Linux, or macOS and get consistent
+# results.
+platform = "linux"
+python_version = "3.12"
 
+# show error messages from unrelated files
+follow_imports = "normal"
 
-# Allow fix for all enabled rules (when `--fix`) is provided.
-fixable = ["ALL"]
+# suppress errors about unsatisfied imports
+ignore_missing_imports = true
+
+# be strict
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+no_implicit_reexport = true
+strict_optional = true
+warn_incomplete_stub = true
+warn_no_return = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
 
 [tool.pytest.ini_options]
-asyncio_mode="auto"
+asyncio_mode = "auto"
+
+[dependency-groups]
+dev = [
+    "codespell==2.4.1",
+    "tox>=4.15",
+    "mypy==1.18.2",
+    "pre-commit==4.3.0",
+    "pre-commit-hooks==6.0.0",
+    "pytest==8.4.2",
+    "pytest-asyncio==1.2.0",
+    "ruff==0.13.3",
+    "yamllint==1.37.1",
+]
