@@ -57,7 +57,7 @@ class SUN2000Device(HuaweiSolarDeviceWithLogin):
         """Check if this class support the given device."""
         return model_name.startswith(
             (
-                "SUN2000",
+                "SUN",
                 "EDF ESS",
                 "Powershifter",
                 "SWI300",
