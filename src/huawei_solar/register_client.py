@@ -52,14 +52,13 @@ class RegisterAwareModbusClient(AsyncModbusClient):
         """Construct a struct format to interpret the registers content with."""
         struct_format = f">{registers[0].format}"
         for idx in range(1, len(registers)):
-            if registers[idx - 1].register + registers[idx - 1].length > registers[idx].register:
+            register_distance = registers[idx].register - (registers[idx - 1].register + registers[idx - 1].length)
+            if register_distance < 0:
                 msg = (
                     f"Requested registers must be in monotonically increasing order, "
                     f"but {registers[idx - 1].register} + {registers[idx - 1].length} > {registers[idx].register}!"
                 )
                 raise ValueError(msg)
-
-            register_distance = registers[idx - 1].register + registers[idx - 1].length - registers[idx].register
 
             if register_distance > MAX_BATCHED_REGISTERS_COUNT:
                 msg = "Gap between requested registers is too large. Split it in two requests"

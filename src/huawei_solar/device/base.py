@@ -110,7 +110,7 @@ class HuaweiSolarDevice(ABC):
         This method adds intelligence on top of read_multiple to only batch together
         registers that are close together in the inverter's memory map.
         """
-        if unknown_registers := {register_name not in REGISTERS for register_name in register_names}:
+        if unknown_registers := {register_name for register_name in register_names if register_name not in REGISTERS}:
             LOGGER.warning(
                 "Unknown register name passed to batch_update: %s",
                 ", ".join(str(rn) for rn in unknown_registers),
