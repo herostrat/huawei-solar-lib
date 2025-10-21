@@ -5,7 +5,7 @@ from logging import getLogger
 from huawei_solar import register_names as rn
 from huawei_solar.modbus_client import AsyncHuaweiSolarClient
 
-from .base import HuaweiSolarDevice
+from .base import HuaweiSolarDevice, HuaweiSolarDeviceWithLogin
 from .emma import EMMADevice
 from .scharger import SChargerDevice
 from .sdongle import SDongleDevice
@@ -59,6 +59,8 @@ async def create_sub_device_instance(
 
 __all__ = [
     "EMMADevice",
+    "HuaweiSolarDevice",
+    "HuaweiSolarDeviceWithLogin",
     "SChargerDevice",
     "SDongleDevice",
     "SUN2000Device",

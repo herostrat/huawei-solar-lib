@@ -8,9 +8,6 @@ from .base import HuaweiSolarDevice
 class SDongleDevice(HuaweiSolarDevice):
     """An SDongle device."""
 
-    model_name: str
-    serial_number: str
-
     @classmethod
     def supports_device(cls, model_name: str) -> bool:
         """Check if this class support the given device."""

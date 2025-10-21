@@ -30,6 +30,7 @@ class HuaweiSolarDevice(ABC):
     """A higher-level interface making it easier to interact with a Huawei Solar inverter."""
 
     model_name: str
+    serial_number: str
     update_lock: asyncio.Lock
     primary_device: "HuaweiSolarDevice | None" = None
 

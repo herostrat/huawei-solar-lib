@@ -11,9 +11,7 @@ class EMMADevice(HuaweiSolarDevice):
     Also called 'SmartHEMS' by Huawei.
     """
 
-    serial_number: str
     software_version: str
-    model: str
 
     @classmethod
     def supports_device(cls, model_name: str) -> bool:
@@ -37,4 +35,4 @@ class EMMADevice(HuaweiSolarDevice):
         self.serial_number = serial_number_result.value
         self.software_version = software_version_result.value
 
-        self.model = (await self.get(rn.EMMA_MODEL)).value
+        self.model_name = (await self.get(rn.EMMA_MODEL)).value
