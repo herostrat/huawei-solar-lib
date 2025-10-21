@@ -3,7 +3,7 @@ name: Publish to PyPI
 
 on: # yamllint disable rule:truthy
   push:
-    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+    tags: ["v*"]
 
 permissions:
   attestations: write
