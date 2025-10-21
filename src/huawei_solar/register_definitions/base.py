@@ -75,12 +75,14 @@ class RegisterDefinition[T](ABC):
             try:
                 return Result(self.unit(value), None)
             except Exception as e:
-                raise DecodeError from e
+                msg = f"Failed to decode value of register {self.register}: {e}"
+                raise DecodeError(msg) from e
         if isinstance(self.unit, dict):
             try:
                 return Result(self.unit[value], None)
             except KeyError as e:
-                raise DecodeError from e
+                msg = f"Failed to decode value of register {self.register}: {e}"
+                raise DecodeError(msg) from e
         return Result(value, self.unit)
 
     def _validate(self, data: T) -> None:

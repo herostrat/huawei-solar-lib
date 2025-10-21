@@ -51,12 +51,14 @@ class NumberRegister[T](RegisterDefinition[T | None]):
             try:
                 return Result(self.unit(value), None)
             except ValueError as err:
-                raise DecodeError from err
+                msg = f"Failed to decode value of register {self.register}: {err}"
+                raise DecodeError(msg) from err
         elif isinstance(self.unit, dict):
             try:
                 return Result(self.unit[value], None)
             except KeyError as err:
-                raise DecodeError from err
+                msg = f"Failed to decode value of register {self.register}: {err}"
+                raise DecodeError(msg) from err
 
         if self.gain != 1:
             value /= self.gain
