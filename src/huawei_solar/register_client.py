@@ -7,11 +7,11 @@ from typing import TYPE_CHECKING, Any
 from tmodbus.client import AsyncModbusClient
 from tmodbus.exceptions import IllegalDataAddressError, ModbusConnectionError, ModbusResponseError
 
-from huawei_solar import HuaweiSolarException
 from huawei_solar import register_names as rn
 from huawei_solar.const import MAX_BATCHED_REGISTERS_COUNT
 from huawei_solar.exceptions import (
     ConnectionInterruptedException,
+    HuaweiSolarException,
     WriteException,
 )
 from huawei_solar.modbus_client import TModbusError
