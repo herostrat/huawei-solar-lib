@@ -7,12 +7,14 @@ from typing import TYPE_CHECKING, Any
 from tmodbus.client import AsyncModbusClient
 from tmodbus.exceptions import IllegalDataAddressError, ModbusConnectionError, ModbusResponseError
 
+from huawei_solar import HuaweiSolarException
 from huawei_solar import register_names as rn
 from huawei_solar.const import MAX_BATCHED_REGISTERS_COUNT
 from huawei_solar.exceptions import (
     ConnectionInterruptedException,
     WriteException,
 )
+from huawei_solar.modbus_client import TModbusError
 from huawei_solar.modbus_pdu import PermissionDeniedError
 from huawei_solar.registers import REGISTERS
 
@@ -98,9 +100,13 @@ class RegisterAwareModbusClient(AsyncModbusClient):
 
         start_address = registers[0].register
         struct_format = self._construct_struct_format(registers)
-        response_tuple = await self.read_struct_format(start_address, format_struct=struct_format)
-
-        return self._decode_response_tuple(registers, response_tuple)
+        try:
+            response_tuple = await self.read_struct_format(start_address, format_struct=struct_format)
+        except TModbusError as err:
+            msg = f"Failed to read registers: {err}"
+            raise HuaweiSolarException(msg) from err
+        else:
+            return self._decode_response_tuple(registers, response_tuple)
 
     async def get_multiple_as_dict(self, names: list[rn.RegisterName]) -> "dict[rn.RegisterName, Result[Any]]":
         """Read multiple registers and return them as a dictionary.
@@ -112,7 +118,7 @@ class RegisterAwareModbusClient(AsyncModbusClient):
             zip(
                 names,
                 await self.get_multiple(names),
-                strict=False,
+                strict=True,
             ),
         )
 
