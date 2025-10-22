@@ -5,7 +5,7 @@ import struct
 from typing import TYPE_CHECKING, Any
 
 from tmodbus.client import AsyncModbusClient
-from tmodbus.exceptions import IllegalDataAddressError, ModbusConnectionError, ModbusResponseError
+from tmodbus.exceptions import IllegalDataAddressError, ModbusConnectionError, ModbusResponseError, TModbusError
 
 from huawei_solar import register_names as rn
 from huawei_solar.const import MAX_BATCHED_REGISTERS_COUNT
@@ -14,7 +14,6 @@ from huawei_solar.exceptions import (
     HuaweiSolarException,
     WriteException,
 )
-from huawei_solar.modbus_client import TModbusError
 from huawei_solar.modbus_pdu import PermissionDeniedError
 from huawei_solar.registers import REGISTERS
 
