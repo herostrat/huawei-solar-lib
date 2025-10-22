@@ -13,7 +13,7 @@ class SChargerDevice(HuaweiSolarDevice):
     @classmethod
     def supports_device(cls, model_name: str) -> bool:
         """Check if this class support the given device."""
-        return model_name.startswith("SCharger")
+        return model_name.startswith("FusionCharge")
 
     async def _populate_additional_fields(self) -> None:
         (
