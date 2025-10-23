@@ -871,13 +871,102 @@ METER_REGISTERS: dict[rn.RegisterName, RegisterDefinition[Any]] = {
 REGISTERS.update(METER_REGISTERS)
 
 SDONGLE_REGISTERS: dict[rn.RegisterName, RegisterDefinition[Any]] = {
-    rn.SDONGLE_TOTAL_INPUT_POWER: U32Register("W", 1, 37498),
-    rn.SDONGLE_LOAD_POWER: U32Register("W", 1, 37500),
-    rn.SDONGLE_GRID_POWER: I32Register("W", 1, 37502),  # positive is importing, negative is exporting
-    rn.SDONGLE_TOTAL_BATTERY_POWER: I32Register("W", 1, 37504),  # positive is charging, negative is discharging
-    rn.SDONGLE_TOTAL_ACTIVE_POWER: I32Register("W", 1, 37516),
+    rn.SDONGLE_TYPE: U16Register(rv.SDongleType, 1, 37410, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_DEVICE_SEARCH_STATUS: U16Register(
+        rv.SDongleDeviceSearchStatus,
+        1,
+        37411,
+        target_device=TargetDevice.SDONGLE,
+    ),
+    rn.SDONGLE_DEVICE_CHANGE_SEQUENCE_NUMBER: U16Register(None, 1, 37412, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_MAXIMUM_DEVICES_ALLOWED: U16Register(None, 1, 37429, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_WIRELESS_ROUTE_ACCESS_SIGNAL_STRENGTH: I16Register(
+        rv.SDongleWirelessRouteAccessSignalStrength4G,
+        1,
+        35104,
+        target_device=TargetDevice.SDONGLE,
+    ),
+    rn.SDONGLE_MONTHLY_USED_TRAFFIC_4G: U32Register("MB", 1, 35116, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_MONTHLY_REMAINING_TRAFFIC_4G: U32Register("MB", 1, 35118, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_AVERAGE_DAILY_USED_TRAFFIC_4G: U32Register("MB", 1, 35120, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_TRAFFIC_STATUS_4G: U16Register(rv.SDongleTrafficStatus4G, 1, 35122, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_IMEI_4G: StringRegister(35254, 10, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_SIGNAL_STRENGTH_4G: U16Register(None, 1, 35264, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_SYSTEM_4G: StringRegister(35266, 10, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_CARRIER_4G: StringRegister(37440, 15, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_TOTAL_INPUT_POWER: U32Register("kW", 1000, 37498, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_LOAD_POWER: U32Register("kW", 1000, 37500, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_GRID_POWER: I32Register(
+        "kW",
+        1000,
+        37502,
+        target_device=TargetDevice.SDONGLE,
+    ),  # positive is importing, negative is exporting
+    rn.SDONGLE_TOTAL_BATTERY_POWER: I32Register(
+        "kW",
+        1000,
+        37504,
+        target_device=TargetDevice.SDONGLE,
+    ),  # positive is charging, negative is discharging
+    rn.SDONGLE_TOTAL_ACTIVE_POWER: I32Register("kW", 1000, 37516, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_RESET: U16Register(None, 1, 40205, target_device=TargetDevice.SDONGLE, readable=False, writeable=True),
+    rn.SDONGLE_APPLICATION_LAYER_HEARTBEAT_PERIOD: U16Register(
+        "min",
+        1,
+        43064,
+        target_device=TargetDevice.SDONGLE,
+        writeable=True,
+    ),
+    rn.SDONGLE_TCP_HEARTBEAT_PERIOD: U16Register("s", 1, 43065, target_device=TargetDevice.SDONGLE, writeable=True),
+    rn.SDONGLE_NMS_SERVER: StringRegister(43067, 30, target_device=TargetDevice.SDONGLE, writeable=True),
+    rn.SDONGLE_NMS_SERVER_PORT1: U16Register(None, 1, 43097, target_device=TargetDevice.SDONGLE, writeable=True),
+    rn.SDONGLE_SSL_ENCRYPTION: U16Register(bool, 1, 43098, target_device=TargetDevice.SDONGLE, writeable=True),
+    rn.SDONGLE_NMS_SERVER_PORT2: U16Register(None, 1, 43099, target_device=TargetDevice.SDONGLE, writeable=True),
+    rn.SDONGLE_PORT_MODE: U16Register(rv.SDonglePortMode, 1, 43100, target_device=TargetDevice.SDONGLE, writeable=True),
+    rn.SDONGLE_REGISTRATION_STATUS: U16Register(bool, 1, 43101, target_device=TargetDevice.SDONGLE, writeable=True),
+    rn.SDONGLE_UNSOLICITED_REPORT_INTERVAL: U16Register(
+        "min",
+        1,
+        43134,
+        target_device=TargetDevice.SDONGLE,
+        writeable=True,
+    ),
+    rn.SDONGLE_REPORTED_DATA_RECORD_PERIOD: U16Register(
+        bool,
+        1,
+        43311,
+        target_device=TargetDevice.SDONGLE,
+        writeable=True,
+    ),
+    rn.SDONGLE_NTP_TIME_SYNCHRONIZATION: U16Register(
+        "min",
+        1,
+        43343,
+        target_device=TargetDevice.SDONGLE,
+        writeable=True,
+    ),
+    rn.SDONGLE_CARD_NUMBER_4G: StringRegister(43386, 10, target_device=TargetDevice.SDONGLE, writeable=True),
+    rn.SDONGLE_NETWORK_MODE_4G: U16Register(
+        rv.SDongleNetworkMode4G,
+        1,
+        43430,
+        target_device=TargetDevice.SDONGLE,
+        writeable=True,
+    ),
+    rn.SDONGLE_TRAFFIC_PACKAGE_4G: U32Register("MB", 2, 43564, target_device=TargetDevice.SDONGLE, writeable=True),
+    rn.SDONGLE_MONTHLY_USED_TRAFFIC_CORRECTION_4G: U32Register("MB", 2, 43566, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_CONNECTION_PORT: U16Register(
+        rv.SDongleConnectionPort,
+        1,
+        45038,
+        target_device=TargetDevice.SDONGLE,
+        readable=False,
+        writeable=True,
+    ),
+    rn.SDONGLE_DEVICE_OPERATION_SN: StringRegister(47402, 10, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_DEVICE_OPERATION_COMMAND: StringRegister(47412, 1, target_device=TargetDevice.SDONGLE),
+    rn.SDONGLE_START_DEVICE_SEARCH: U16Register(None, 1, 47413, target_device=TargetDevice.SDONGLE),
 }
-
 REGISTERS.update(SDONGLE_REGISTERS)
 
 SMARTLOGGER_REGISTERS: dict[rn.RegisterName, RegisterDefinition[Any]] = {

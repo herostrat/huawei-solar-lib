@@ -753,6 +753,63 @@ class EmmaConsiderMainsFaultyIf(IntEnum):
     CLOSED = 1
 
 
+class SDongleType(_IntEnumWithPrettyString):
+    """SDongle Type."""
+
+    NA = 1
+    WLAN = 2
+    _4G = 3
+    WLAN_FE = 4
+
+
+class SDongleDeviceSearchStatus(IntEnum):
+    """SDongle Device Search Status."""
+
+    SEARCH_COMPLETED = 0
+    SEARCHING = 1
+    SEARCH_FAILED = 2
+
+
+class SDongleWirelessRouteAccessSignalStrength4G(_IntEnumWithPrettyString):
+    """SDongle Wireless Route Access Signal Strength."""
+
+    DISCONNECTED = 0x7FFF
+    CONNECT_SUCCESS = 0x7FFC
+    CONNECTING_OR_CONNECTION_FAILED = 0x7FFD
+    DISCONNECTED_DUE_TO_AUTHENTICATION_FAILURE = 0x7FFE
+
+
+class SDongleTrafficStatus4G(_IntEnumWithPrettyString):
+    """SDongle Traffic Status."""
+
+    NORMAL = 0
+    WARNING = 1
+    USED_UP = 2
+    NO_PACKAGE_CONFIGURED = 0xFF
+
+
+class SDonglePortMode(_IntEnumWithPrettyString):
+    """SDongle Port Mode."""
+
+    DUAL_PORT = 0
+    SINGLE_PORT = 1
+
+
+class SDongleNetworkMode4G(_IntEnumWithPrettyString):
+    """SDongle Network Mode."""
+
+    AUTO_SELECT_4G_3G_2G = 0
+    AUTO_SELECT_3G_2G = 1
+    ONLY_2G = 2
+
+
+class SDongleConnectionPort(IntEnum):
+    """SDongle Connection Port Mode."""
+
+    PORT1 = 1
+    PORT2 = 2
+
+
 SMARTLOGGER_ALARM_CODES_1 = {
     0b0001_0001_0000_0000: Alarm("Abnormal Active Schedule", 2088, "Major"),
     0b0001_0001_0000_0001: Alarm("Abnormal Reactive Schedule", 2088, "Major"),
