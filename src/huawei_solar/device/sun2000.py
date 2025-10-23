@@ -105,7 +105,9 @@ class SUN2000Device(HuaweiSolarDeviceWithLogin):
                 "Detected two batteries of a different type. This can lead to unexpected behavior",
             )
 
-        if self.battery_type != rv.StorageProductModel.NONE:
+        if self.battery_type != rv.StorageProductModel.NONE and (
+            self.primary_device is None or not isinstance(self.primary_device, EMMADevice)
+        ):
             try:
                 await self.get(rn.STORAGE_CAPACITY_CONTROL_MODE)
                 self.supports_capacity_control = True
