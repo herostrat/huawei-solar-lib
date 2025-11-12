@@ -79,7 +79,13 @@ This results in the following output being printed:
 {'input_power': Result(value=82, unit='W'), 'line_voltage_A_B': Result(value=233.4, unit='V'), 'line_voltage_B_C': Result(value=0.0, unit='V'), 'line_voltage_C_A': Result(value=0.0, unit='V')}
 ```
 
-# Acknowledgements
+## Frequently asked questions
+
+**Q:** the connection is interrupted a few seconds after connecting to the Huawei Device. How do I solve this?
+
+**A:**: Huawei devices only support one connection at a time. If your connection is interrupted, this is typically because another device is trying to (re-)connect to it. Disable that device and try again.
+
+## Acknowledgements
 
 The initial implementation of v1 was done by [@Emilv2](https://gitlab.com/Emilv2/huawei-solar/-/tree/1.1.0).
 
