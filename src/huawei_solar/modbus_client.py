@@ -1,5 +1,6 @@
 """Low-level Modbus logic."""
 
+import asyncio
 import logging
 from typing import TypeVar
 
@@ -33,6 +34,7 @@ DEFAULT_TIMEOUT = 10  # especially the SDongle can react quite slowly
 DEFAULT_WAIT = 1
 DEFAULT_COOLDOWN_TIME = 0.05
 WAIT_FOR_CONNECTION_TIMEOUT = 5
+WAIT_FOR_LOGIN_TIMEOUT = 5
 
 HEARTBEAT_REGISTER = 49999
 
@@ -152,11 +154,16 @@ class AsyncHuaweiSolarClient(RegisterAwareModbusClient, AsyncModbusClient):
     async def login(self, username: str, password: str) -> bool:
         """Login onto the inverter."""
         LOGGER.debug("Logging in '%s'", username)
-        inverter_challenge = await self.execute(
+        # this circumvents the locking issue when using self.execute which locks on
+        # _communication_lock in AsyncSmartTransport.send_and_receive
+        assert isinstance(self.transport, AsyncSmartTransport)
+        inverter_challenge = await self.transport.base_transport.send_and_receive(
+            self.unit_id,
             LoginRequestChallengePDU(),
         )
 
-        logged_in = await self.execute(
+        logged_in = await self.transport.base_transport.send_and_receive(
+            self.unit_id,
             LoginPDU(username, password, inverter_challenge),
         )
         if logged_in:
@@ -168,11 +175,17 @@ class AsyncHuaweiSolarClient(RegisterAwareModbusClient, AsyncModbusClient):
                 LOGGER.info("Reconnected to inverter, logging in again")
                 logged_in_again = await self.login(username, password)
                 if not logged_in_again:
-                    LOGGER.error("Failed to login after reconnect. Will not try again.")
+                    LOGGER.error("Failed to login after reconnect. Will not try again")
                     assert isinstance(self.transport, AsyncSmartTransport)
                     self.transport.on_reconnected = None
+                else:
+                    LOGGER.info("Successfully logged in again after reconnect")
 
-            self.transport.on_reconnected = login_on_reconnect
+            async def login_on_reconnect_with_timeout() -> None:
+                """Login again after a reconnect, with timeout."""
+                return await asyncio.wait_for(login_on_reconnect(), timeout=WAIT_FOR_LOGIN_TIMEOUT)
+
+            self.transport.on_reconnected = login_on_reconnect_with_timeout
 
         return logged_in
 
