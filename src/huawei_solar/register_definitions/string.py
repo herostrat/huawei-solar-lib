@@ -47,4 +47,4 @@ def bytes_to_string(value: bytes) -> str:
     null_byte_index = value.find(b"\x00")
     if null_byte_index != -1:
         value = value[:null_byte_index]
-    return value.decode("utf-8")
+    return value.decode("utf-8", errors="backslashreplace")
