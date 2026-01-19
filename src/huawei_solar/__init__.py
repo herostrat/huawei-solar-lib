@@ -1,6 +1,6 @@
 """Interact with Huawei inverters over Modbus."""
 
-from huawei_solar.device import (
+from .device import (
     EMMADevice,
     HuaweiSolarDevice,
     HuaweiSolarDeviceWithLogin,
@@ -11,8 +11,7 @@ from huawei_solar.device import (
     create_device_instance,
     create_sub_device_instance,
 )
-from huawei_solar.device_discovery import DeviceIdentifier, DeviceInfo, get_device_identifiers, get_device_infos
-
+from .device_discovery import DeviceIdentifier, DeviceInfo, get_device_identifiers, get_device_infos
 from .exceptions import (
     ConnectionException,
     ConnectionInterruptedException,
@@ -24,6 +23,13 @@ from .exceptions import (
     ReadException,
     TimeOfUsePeriodsException,
     WriteException,
+)
+from .files import (
+    OptimizerHistoryRealTimeDataUnit,
+    OptimizerOnlineStatus,
+    OptimizerRealTimeData,
+    OptimizerRunningStatus,
+    OptimizerSystemInformation,
 )
 from .modbus_client import AsyncHuaweiSolarClient, create_rtu_client, create_tcp_client
 from .register_definitions import Result
@@ -42,6 +48,11 @@ __all__ = [
     "HuaweiSolarDeviceWithLogin",
     "HuaweiSolarException",
     "InvalidCredentials",
+    "OptimizerHistoryRealTimeDataUnit",
+    "OptimizerOnlineStatus",
+    "OptimizerRealTimeData",
+    "OptimizerRunningStatus",
+    "OptimizerSystemInformation",
     "PeakPeriodsValidationError",
     "ReadException",
     "RegisterName",
