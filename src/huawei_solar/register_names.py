@@ -551,7 +551,7 @@ CHARGER_RATED_POWER = RegisterName("charger_rated_power")
 CHARGER_PHASE_A_VOLTAGE = RegisterName("charger_phase_a_voltage")
 CHARGER_PHASE_B_VOLTAGE = RegisterName("charger_phase_b_voltage")
 CHARGER_PHASE_C_VOLTAGE = RegisterName("charger_phase_c_voltage")
-CHARGER_TOTAL_ENERGY_CHARGED = RegisterName("chager_total_energy_charged")
+CHARGER_TOTAL_ENERGY_CHARGED = RegisterName("charger_total_energy_charged")
 CHARGER_TEMPERATURE = RegisterName("charger_temperature")
 
 DAYLIGHT_SAVING_TIME = RegisterName("daylight_saving_time")
