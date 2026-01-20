@@ -228,6 +228,9 @@ REGISTERS: dict[rn.RegisterName, RegisterDefinition[Any]] = {
         10,
         35044,
     ),  # SUN2000MA-only register
+    rn.ACTIVE_POWER_ADJUSTMENT_MODE: U16Register(None, 1, 35300),
+    rn.ACTIVE_POWER_ADJUSTMENT_VALUE: U32Register(None, 1, 35302),
+    rn.ACTIVE_POWER_ADJUSTMENT_COMMAND: U16Register(None, 1, 35303),
     rn.NB_OPTIMIZERS: U16Register(None, 1, 37200),
     rn.NB_ONLINE_OPTIMIZERS: U16Register(None, 1, 37201),
     rn.SYSTEM_TIME: TimestampRegister(40000),
@@ -270,6 +273,7 @@ REGISTERS: dict[rn.RegisterName, RegisterDefinition[Any]] = {
     rn.MPPT_MULTIMODAL_SCANNING: U16Register(bool, 1, 42054, writeable=True),
     rn.MPPT_SCANNING_INTERVAL: U16Register("minutes", 1, 42055, writeable=True),
     rn.MPPT_PREDICTED_POWER: U32Register("W", 1, 42056),
+    rn.MAXIMUM_ACTIVE_POWER: U32Register("W", 1, 42178),
     rn.DAYLIGHT_SAVING_TIME: U16Register(
         bool,
         1,
