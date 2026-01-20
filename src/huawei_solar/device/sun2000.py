@@ -7,7 +7,10 @@ from typing import Any
 
 from huawei_solar import register_names as rn
 from huawei_solar import register_values as rv
+from tmodbus.exceptions import ModbusConnectionError, ModbusResponseError, TModbusError
+
 from huawei_solar.exceptions import (
+    ConnectionInterruptedException,
     HuaweiSolarException,
     ReadException,
 )
@@ -217,6 +220,64 @@ class SUN2000Device(HuaweiSolarDeviceWithLogin):
             return (await self.primary_device.get(rn.EMMA_SYSTEM_TIME)).value  # type: ignore[no-any-return]
 
         return (await self.get(rn.SYSTEM_TIME_RAW)).value  # type: ignore[no-any-return]
+
+    async def _read_active_power_adjustment_status(self) -> tuple[int, int, int]:
+        """Read active power adjustment status registers (35300-35303) in one request."""
+        try:
+            # The 32-bit adjustment value occupies the two middle registers in this block.
+            return await self.client.read_struct_format(35300, format_struct=">H I H")
+        except ModbusResponseError as err:
+            msg = "Failed to read active power adjustment status registers"
+            raise ReadException(msg, modbus_exception_code=err.error_code) from err
+        except ModbusConnectionError as err:
+            _LOGGER.exception("Connection error while reading active power adjustment status registers")
+            msg = "Connection failed when trying to read active power adjustment status registers"
+            raise ConnectionInterruptedException(msg) from err
+        except TModbusError as err:
+            msg = f"Failed to read active power adjustment status registers: {err}"
+            raise ReadException(msg) from err
+
+    async def get_active_power_derating_percent(self) -> float | None:
+        """Get active power derating as a percentage of Pmax.
+
+        The value is derived from the active power adjustment status registers
+        (35300-35303) and normalized against the maximum active power register
+        (42178). In percentage mode (command 40125) the raw value is reported in
+        0.1%. In fixed-value mode (commands 40120/40126), the raw value is
+        converted to kW and then normalized against Pmax. Returns 100.0 when no
+        active derating is detected and None when the registers are unsupported.
+        """
+        try:
+            mode, value_raw, command = await self._read_active_power_adjustment_status()
+        except ReadException as err:
+            if err.modbus_exception_code == 0x02:
+                return None
+            raise
+
+        if mode == 0 and command == 40125:
+            return value_raw / 10.0
+
+        if mode == 1 and command in (40120, 40126):
+            if command == 40120:
+                limited_kw = value_raw * 0.001
+            else:
+                limited_kw = value_raw / 1000.0
+
+            try:
+                pmax_result = await self.get(rn.MAXIMUM_ACTIVE_POWER)
+            except ReadException as err:
+                if err.modbus_exception_code == 0x02:
+                    return None
+                raise
+
+            pmax_value = pmax_result.value
+            if pmax_value is None or pmax_value <= 0:
+                return None
+
+            pmax_kw = pmax_value / 1000.0
+            return (limited_kw / pmax_kw) * 100.0
+
+        return 100.0
 
     async def get_latest_optimizer_history_data(
         self,
