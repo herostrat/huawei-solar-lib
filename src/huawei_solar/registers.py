@@ -229,7 +229,7 @@ REGISTERS: dict[rn.RegisterName, RegisterDefinition[Any]] = {
         35044,
     ),  # SUN2000MA-only register
     rn.ACTIVE_POWER_ADJUSTMENT_MODE: U16Register(None, 1, 35300),
-    rn.ACTIVE_POWER_ADJUSTMENT_VALUE: U32Register(None, 1, 35302),
+    rn.ACTIVE_POWER_ADJUSTMENT_VALUE: U32Register(None, 1, 35301),
     rn.ACTIVE_POWER_ADJUSTMENT_COMMAND: U16Register(None, 1, 35303),
     rn.NB_OPTIMIZERS: U16Register(None, 1, 37200),
     rn.NB_ONLINE_OPTIMIZERS: U16Register(None, 1, 37201),
