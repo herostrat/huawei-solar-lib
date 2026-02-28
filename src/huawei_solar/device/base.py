@@ -225,7 +225,9 @@ class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
                 _LOGGER.debug(
                     "Currently not logged in: logging in now and starting heartbeat",
                 )
-                assert self.__password
+                if not self.__password:
+                    msg = "Password must be set before logging in"
+                    raise InvalidCredentials(msg)
                 if not await self.client.login(self.__username, self.__password):
                     raise InvalidCredentials
 
@@ -255,7 +257,9 @@ class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
 
     def start_heartbeat(self) -> None:
         """Start the heartbeat thread to stay logged in."""
-        assert self.__login_lock.locked(), "Should only be called from within the login_lock!"
+        if not self.__login_lock.locked():
+            msg = "start_heartbeat should only be called from within the login_lock"
+            raise RuntimeError(msg)
 
         if self.__heartbeat_task:
             self.stop_heartbeat()
