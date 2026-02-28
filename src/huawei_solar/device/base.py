@@ -197,12 +197,20 @@ class HuaweiSolarDevice(ABC):
 class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
     """A HuaweiSolarDevice that requires login to read any registers."""
 
-    __login_lock = asyncio.Lock()
-    __heartbeat_enabled = False
-    __heartbeat_task: asyncio.Task[None] | None = None
-
-    __username: str | None = None
-    __password: str | None = None
+    def __init__(
+        self,
+        client: "AsyncHuaweiSolarClient",
+        model_name: str,
+        *,
+        primary_device: "HuaweiSolarDevice | None" = None,
+    ) -> None:
+        """Initialize with per-instance lock and login state."""
+        super().__init__(client, model_name, primary_device=primary_device)
+        self.__login_lock = asyncio.Lock()
+        self.__heartbeat_enabled = False
+        self.__heartbeat_task: asyncio.Task[None] | None = None
+        self.__username: str | None = None
+        self.__password: str | None = None
 
     async def ensure_logged_in(self, *, force: bool = False) -> bool:
         """Check if it is necessary to login and performs the necessary login sequence if needed."""
