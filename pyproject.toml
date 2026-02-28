@@ -67,6 +67,9 @@ ignore = [
 
 pylint.max-args = 6
 
+[tool.ruff.lint.per-file-ignores]
+"src/huawei_solar/register_definitions/periods.py" = ["N801"]
+
 [tool.mypy]
 # Specify the target platform details in config, so your developers are
 # free to run mypy on Windows, Linux, or macOS and get consistent

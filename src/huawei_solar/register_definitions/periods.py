@@ -10,7 +10,7 @@ from .base import RegisterDefinition, Result
 
 
 @dataclass(frozen=True, slots=True)
-class LG_RESU_TimeOfUsePeriod:  # noqa: N801
+class LG_RESU_TimeOfUsePeriod:
     """Time of use period of LG RESU."""
 
     start_time: int  # minutes since midnight
@@ -26,7 +26,7 @@ class ChargeFlag(IntEnum):
 
 
 @dataclass(frozen=True, slots=True)
-class HUAWEI_LUNA2000_TimeOfUsePeriod:  # noqa: N801
+class HUAWEI_LUNA2000_TimeOfUsePeriod:
     """Time of use period of Huawei LUNA2000."""
 
     start_time: int  # minutes since midnight
@@ -46,7 +46,7 @@ class HUAWEI_LUNA2000_TimeOfUsePeriod:  # noqa: N801
 LG_RESU_TOU_PERIODS = 10
 
 
-class LG_RESU_TimeOfUseRegisters(RegisterDefinition[list[LG_RESU_TimeOfUsePeriod]]):  # noqa: N801
+class LG_RESU_TimeOfUseRegisters(RegisterDefinition[list[LG_RESU_TimeOfUsePeriod]]):
     """Time of use register."""
 
     format = f"H{'HHI' * LG_RESU_TOU_PERIODS}"
@@ -139,7 +139,7 @@ class LG_RESU_TimeOfUseRegisters(RegisterDefinition[list[LG_RESU_TimeOfUsePeriod
 HUAWEI_LUNA2000_TOU_PERIODS = 14
 
 
-class HUAWEI_LUNA2000_TimeOfUseRegisters(RegisterDefinition[list[HUAWEI_LUNA2000_TimeOfUsePeriod]]):  # noqa: N801
+class HUAWEI_LUNA2000_TimeOfUseRegisters(RegisterDefinition[list[HUAWEI_LUNA2000_TimeOfUsePeriod]]):
     """Time of use register."""
 
     format = f"H{'HHBB' * HUAWEI_LUNA2000_TOU_PERIODS}"
