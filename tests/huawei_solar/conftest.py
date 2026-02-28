@@ -1,8 +1,15 @@
-from pymodbus.register_read_message import ReadHoldingRegistersResponse
-import pytest
+"""Pytest configuration and fixtures for huawei-solar tests."""
 
-from huawei_solar.huawei_solar import AsyncHuaweiSolar
+import struct
+
+import pytest
+from huawei_solar.modbus_client import AsyncHuaweiSolarClient
 from huawei_solar.register_values import StorageProductModel
+from tmodbus.pdu.base import RT, BaseClientPDU
+from tmodbus.pdu.holding_registers import RawReadHoldingRegistersPDU
+from tmodbus.transport.async_base import AsyncBaseTransport
+
+from huawei_solar.device import SUN2000Device
 
 MOCK_REGISTERS = {
     (30000, 25): [
@@ -72,6 +79,7 @@ MOCK_REGISTERS = {
     (32021, 1): [0],
     (32022, 1): [0],
     (32023, 1): [0],
+    (32064, 5): [0, 0, 0, 0, 0],
     (32064, 2): [0, 0],
     (32066, 1): [0],
     (32067, 1): [0],
@@ -104,17 +112,49 @@ MOCK_REGISTERS = {
 }
 
 
-class MockModbusClient:
-    def __init__(self) -> None:
-        self.connected = True
+class MockTransport(AsyncBaseTransport):
+    """Mock transport for testing."""
 
-    async def read_holding_registers(self, register, length, *args, **kwargs):
-        return ReadHoldingRegistersResponse(MOCK_REGISTERS[(register, length)])
+    async def open(self) -> None:
+        """Mock open transport."""
+        return
+
+    async def close(self) -> None:
+        """Mock close transport."""
+        return
+
+    def is_open(self) -> bool:
+        """Mock is transport open."""
+        return True
+
+    async def send_and_receive(self, unit_id: int, pdu: BaseClientPDU[RT]) -> RT:  # noqa: ARG002
+        """Mock send and receive."""
+        if isinstance(pdu, RawReadHoldingRegistersPDU):
+            key = (pdu.start_address, pdu.quantity)
+            if mock_register := MOCK_REGISTERS.get(key):
+                return struct.pack(f">{'H' * pdu.quantity}", *mock_register)  # type: ignore[return-value]
+            msg = f"MockTransport: No mock data for {key}"
+            raise ValueError(msg)
+        msg = f"MockTransport: Unsupported PDU type {type(pdu)}"
+        raise ValueError(msg)
 
 
 @pytest.fixture
-def huawei_solar():
-    hs = AsyncHuaweiSolar(MockModbusClient(), cooldown_time=0)
-    hs.time_zone = 60
-    hs.battery_type = StorageProductModel.HUAWEI_LUNA2000
-    return hs
+def huawei_solar() -> AsyncHuaweiSolarClient:
+    """Create a mock AsyncHuaweiSolarClient for testing."""
+    return AsyncHuaweiSolarClient(transport=MockTransport(), unit_id=1)
+
+
+@pytest.fixture
+def sun2000_device(huawei_solar: AsyncHuaweiSolarClient) -> SUN2000Device:
+    """Create a mock SUN2000Device for testing."""
+    sun2000_device = SUN2000Device(
+        client=huawei_solar,
+        model_name="SUN2000-9KTL-123",
+        primary_device=None,
+    )
+
+    sun2000_device._time_zone = 60
+    sun2000_device.battery_1_type = StorageProductModel.HUAWEI_LUNA2000
+
+    return sun2000_device

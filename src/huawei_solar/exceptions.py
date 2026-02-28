@@ -1,9 +1,9 @@
 """Exceptions from the Huawei Solar library."""
 
-import typing as t
+from typing import Any
 
 
-class HuaweiSolarException(Exception):
+class HuaweiSolarException(Exception):  # noqa: N818
     """Base class for Huawei Solar exceptions."""
 
 
@@ -24,36 +24,38 @@ class PeakPeriodsValidationError(Exception):
 
 
 class ConnectionException(HuaweiSolarException):
-    """Exception connecting to device"""
+    """Exception connecting to device."""
 
 
 class ReadException(HuaweiSolarException):
-    """Exception reading register from device"""
+    """Exception reading register from device."""
 
-    def __init__(self, *args, modbus_exception_code: t.Optional[int] = None, **kwargs):
+    def __init__(self, *args: Any, modbus_exception_code: int | None = None, **kwargs: Any) -> None:  # noqa: ANN401
+        """Create ReadException."""
         super().__init__(*args, **kwargs)
         self.modbus_exception_code = modbus_exception_code
+
+
+class UnexpectedResponseContent(HuaweiSolarException):
+    """The response from the device contained unexpected content."""
 
 
 class ConnectionInterruptedException(HuaweiSolarException):
-    """Exception because the connection to the inverter was interrupted"""
-
-
-class SlaveBusyException(HuaweiSolarException):
-    """Non-fatal exception while trying to read from device"""
+    """Connection to the inverter was interrupted."""
 
 
 class WriteException(HuaweiSolarException):
-    """Exception writing register to device"""
+    """Exception writing register to device."""
 
-    def __init__(self, *args, modbus_exception_code: t.Optional[int] = None, **kwargs):
+    def __init__(self, *args: Any, modbus_exception_code: int | None = None, **kwargs: Any) -> None:  # noqa: ANN401
+        """Create WriteException."""
         super().__init__(*args, **kwargs)
         self.modbus_exception_code = modbus_exception_code
 
 
-class PermissionDenied(HuaweiSolarException):
-    """The inverter returned an error indicating that you don't have permission for this action."""
-
-
 class InvalidCredentials(HuaweiSolarException):
-    """Logging in on the inverter failed"""
+    """Logging in on the inverter failed."""
+
+
+class UnsupportedDeviceException(HuaweiSolarException):
+    """No bridge class is available for this device."""
