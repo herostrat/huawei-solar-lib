@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from huawei_solar.register_definitions import RegisterDefinition, Result
 
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class RegisterAwareModbusClient(AsyncModbusClient):
@@ -105,7 +105,7 @@ class RegisterAwareModbusClient(AsyncModbusClient):
             msg = f"Failed to read registers {', '.join(names)}: received {type(err).__name__}"
             raise ReadException(msg, modbus_exception_code=err.error_code) from err
         except ModbusConnectionError as err:
-            LOGGER.exception("Connection error while reading registers %s", names)
+            _LOGGER.exception("Connection error while reading registers %s", names)
             msg = f"Connection failed when trying to read registers {', '.join(names)}"
             raise ConnectionInterruptedException(msg) from err
         except TModbusError as err:
@@ -166,7 +166,7 @@ class RegisterAwareModbusClient(AsyncModbusClient):
         self._validate_data_to_write(register, values)
         try:
             if register.length == 1:
-                LOGGER.debug(
+                _LOGGER.debug(
                     "Writing to %d: single value '%s' on server %d",
                     register.register,
                     values[0],
@@ -177,7 +177,7 @@ class RegisterAwareModbusClient(AsyncModbusClient):
 
                 success: bool = response == values[0]
             else:
-                LOGGER.debug(
+                _LOGGER.debug(
                     "Writing to %d: values '%s' on server %d",
                     register.register,
                     values,
@@ -204,6 +204,6 @@ class RegisterAwareModbusClient(AsyncModbusClient):
             msg = f"Failed to write value {values} to register {register}: {e.error_code:02x}"
             raise WriteException(msg, modbus_exception_code=e.error_code) from e
         except ModbusConnectionError as err:
-            LOGGER.exception("Connection error while writing to register %s", register)
+            _LOGGER.exception("Connection error while writing to register %s", register)
             raise ConnectionInterruptedException(err) from err
         return success

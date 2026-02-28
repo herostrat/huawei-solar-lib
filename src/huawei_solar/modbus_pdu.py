@@ -13,7 +13,7 @@ from tmodbus.pdu import BaseSubFunctionClientPDU, register_pdu_class
 RECONNECT_DELAY = 1000  # in milliseconds
 WAIT_ON_CONNECT = 1500  # in milliseconds
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 # Register custom Huawei Modbus PDUs

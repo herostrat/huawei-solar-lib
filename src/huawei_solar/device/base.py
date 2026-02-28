@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from huawei_solar.modbus_client import AsyncHuaweiSolarClient
     from huawei_solar.register_definitions import Result
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 HEARTBEAT_INTERVAL = 15
 
@@ -111,7 +111,7 @@ class HuaweiSolarDevice(ABC):
         registers that are close together in the inverter's memory map.
         """
         if unknown_registers := {register_name for register_name in register_names if register_name not in REGISTERS}:
-            LOGGER.warning(
+            _LOGGER.warning(
                 "Unknown register name passed to batch_update: %s",
                 ", ".join(str(rn) for rn in unknown_registers),
             )
@@ -155,7 +155,7 @@ class HuaweiSolarDevice(ABC):
                 register_names_to_query = await self._filter_registers(
                     register_names_to_query,
                 )
-                LOGGER.debug(
+                _LOGGER.debug(
                     "Batch update of the following registers: %s",
                     ", ".join(register_names_to_query),
                 )
@@ -208,13 +208,13 @@ class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
         """Check if it is necessary to login and performs the necessary login sequence if needed."""
         async with self.__login_lock:
             if force:
-                LOGGER.debug(
+                _LOGGER.debug(
                     "Forcefully stopping any heartbeat task (if any is still running)",
                 )
                 self.stop_heartbeat()
 
             if self.__username and not self.__heartbeat_enabled:
-                LOGGER.debug(
+                _LOGGER.debug(
                     "Currently not logged in: logging in now and starting heartbeat",
                 )
                 assert self.__password
@@ -258,7 +258,7 @@ class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
                     self.__heartbeat_enabled = await self.client.heartbeat()
                     await asyncio.sleep(HEARTBEAT_INTERVAL)
                 except HuaweiSolarException as err:
-                    LOGGER.warning("Heartbeat stopped because of, %s", err)
+                    _LOGGER.warning("Heartbeat stopped because of, %s", err)
                     self.__heartbeat_enabled = False
 
         self.__heartbeat_enabled = True
@@ -278,7 +278,7 @@ class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
         logged_in = await self.ensure_logged_in()
 
         if not logged_in:
-            LOGGER.warning(
+            _LOGGER.warning(
                 "Could not login, reading file %x will probably fail",
                 file_type,
             )
@@ -290,7 +290,7 @@ class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
                 logged_in = await self.ensure_logged_in(force=True)
 
                 if not logged_in:
-                    LOGGER.exception("Could not login to read file %x", file_type)
+                    _LOGGER.exception("Could not login to read file %x", file_type)
                     raise
 
                 return await self.client.get_file(
@@ -321,13 +321,13 @@ class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
         logged_in = await self.ensure_logged_in()  # we must login again before trying to set the value
 
         if not logged_in:
-            LOGGER.warning("Could not login, setting, %s will probably fail", name)
+            _LOGGER.warning("Could not login, setting, %s will probably fail", name)
 
         if self.__heartbeat_enabled:
             try:
                 await self.client.heartbeat()
             except HuaweiSolarException:
-                LOGGER.warning("Failed to perform heartbeat before write")
+                _LOGGER.warning("Failed to perform heartbeat before write")
 
         try:
             return await super().set(name, value)
@@ -336,7 +336,7 @@ class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
                 logged_in = await self.ensure_logged_in(force=True)
 
                 if not logged_in:
-                    LOGGER.exception("Could not login to set %s", name)
+                    _LOGGER.exception("Could not login to set %s", name)
                     raise
 
                 # Force a heartbeat first when connected with username/password credentials
