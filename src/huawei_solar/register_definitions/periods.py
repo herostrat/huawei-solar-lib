@@ -9,7 +9,7 @@ from huawei_solar.exceptions import PeakPeriodsValidationError, TimeOfUsePeriods
 from .base import RegisterDefinition, Result
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class LG_RESU_TimeOfUsePeriod:  # noqa: N801
     """Time of use period of LG RESU."""
 
@@ -25,7 +25,7 @@ class ChargeFlag(IntEnum):
     DISCHARGE = 1
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class HUAWEI_LUNA2000_TimeOfUsePeriod:  # noqa: N801
     """Time of use period of Huawei LUNA2000."""
 
@@ -253,7 +253,7 @@ class HUAWEI_LUNA2000_TimeOfUseRegisters(RegisterDefinition[list[HUAWEI_LUNA2000
         return tuple(values)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ChargeDischargePeriod:
     """Charge or Discharge Period."""
 
@@ -308,7 +308,7 @@ class ChargeDischargePeriodRegisters(RegisterDefinition[list[ChargeDischargePeri
         return tuple(values)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PeakSettingPeriod:
     """Peak Setting Period."""
 

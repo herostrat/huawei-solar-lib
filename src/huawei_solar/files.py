@@ -47,7 +47,7 @@ class OptimizerRunningStatus(_IntEnumWithPrettyString):
     POWER_OFF = 12
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class OptimizerRealTimeData:
     """Optimizer History Real Time Data."""
 
@@ -64,7 +64,7 @@ class OptimizerRealTimeData:
     accumulated_energy_yield: float  # kWh
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class OptimizerHistoryRealTimeDataUnit:
     """Optimizer History Real Time Data Unit."""
 
@@ -182,7 +182,7 @@ class OptimizerOnlineStatus(_IntEnumWithPrettyString):
     DISCONNECTED = 2
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class OptimizerSystemInformation:
     """Optimizer System Information."""
 

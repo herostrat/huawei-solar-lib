@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 DEVICE_INFOS_START_OBJECT_ID = 0x87
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class DeviceInfo:
     """Device information."""
 
@@ -31,7 +31,7 @@ class DeviceInfo:
     product_type: str | None
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class DeviceIdentifier:
     """Device identifier information."""
 

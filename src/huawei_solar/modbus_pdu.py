@@ -140,7 +140,7 @@ class LoginPDU(BaseSubFunctionClientPDU[bool]):
 register_pdu_class(LoginPDU)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class StartFileUpload:
     """Contents of StartFileUpload response."""
 
@@ -208,7 +208,7 @@ class StartFileUploadPDU(BaseSubFunctionClientPDU[StartFileUpload]):
 register_pdu_class(StartFileUploadPDU)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class UploadFileFrame:
     """Represents a frame of file data."""
 
