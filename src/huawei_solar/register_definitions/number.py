@@ -141,6 +141,19 @@ class U64Register(NumberRegister[int]):
     length = 4
     invalid_value = 2**63 - 1
 
+    def decode(self, values: tuple[Any, ...]) -> Result[int | None]:
+        """Decode unsigned 64-bit register.
+
+        Also treats all-ones (2^64 - 1) as invalid. This value occurs
+        when Modbus communication errors cause all registers to return
+        0xFFFF, which combines to 0xFFFFFFFFFFFFFFFF. Without this
+        check, the all-ones value passes through as a valid number and
+        corrupts total_increasing energy statistics in Home Assistant.
+        """
+        if values[0] == 2**64 - 1:
+            return Result(value=None, unit=None)
+        return super().decode(values)
+
 
 class I16Register(NumberRegister[int]):
     """Signed 16-bit register."""
