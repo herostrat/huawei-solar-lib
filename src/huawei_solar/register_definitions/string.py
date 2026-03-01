@@ -2,8 +2,6 @@
 
 from typing import Any
 
-from huawei_solar.exceptions import DecodeError
-
 from .base import RegisterDefinition, Result, TargetDevice
 
 
@@ -35,10 +33,7 @@ class StringRegister(RegisterDefinition[str]):
 
     def decode(self, values: tuple[Any, ...]) -> Result[str]:
         """Decode string."""
-        try:
-            return Result(bytes_to_string(values[0]), None)
-        except UnicodeDecodeError as err:
-            raise DecodeError from err
+        return Result(bytes_to_string(values[0]), None)
 
 
 def bytes_to_string(value: bytes) -> str:

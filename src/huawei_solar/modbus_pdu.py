@@ -13,7 +13,7 @@ from tmodbus.pdu import BaseSubFunctionClientPDU, register_pdu_class
 RECONNECT_DELAY = 1000  # in milliseconds
 WAIT_ON_CONNECT = 1500  # in milliseconds
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 # Register custom Huawei Modbus PDUs
@@ -140,7 +140,7 @@ class LoginPDU(BaseSubFunctionClientPDU[bool]):
 register_pdu_class(LoginPDU)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class StartFileUpload:
     """Contents of StartFileUpload response."""
 
@@ -208,7 +208,7 @@ class StartFileUploadPDU(BaseSubFunctionClientPDU[StartFileUpload]):
 register_pdu_class(StartFileUploadPDU)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class UploadFileFrame:
     """Represents a frame of file data."""
 

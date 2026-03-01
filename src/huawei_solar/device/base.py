@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from huawei_solar.modbus_client import AsyncHuaweiSolarClient
     from huawei_solar.register_definitions import Result
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 HEARTBEAT_INTERVAL = 15
 
@@ -111,7 +111,7 @@ class HuaweiSolarDevice(ABC):
         registers that are close together in the inverter's memory map.
         """
         if unknown_registers := {register_name for register_name in register_names if register_name not in REGISTERS}:
-            LOGGER.warning(
+            _LOGGER.warning(
                 "Unknown register name passed to batch_update: %s",
                 ", ".join(str(rn) for rn in unknown_registers),
             )
@@ -155,7 +155,7 @@ class HuaweiSolarDevice(ABC):
                 register_names_to_query = await self._filter_registers(
                     register_names_to_query,
                 )
-                LOGGER.debug(
+                _LOGGER.debug(
                     "Batch update of the following registers: %s",
                     ", ".join(register_names_to_query),
                 )
@@ -197,27 +197,37 @@ class HuaweiSolarDevice(ABC):
 class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
     """A HuaweiSolarDevice that requires login to read any registers."""
 
-    __login_lock = asyncio.Lock()
-    __heartbeat_enabled = False
-    __heartbeat_task: asyncio.Task[None] | None = None
-
-    __username: str | None = None
-    __password: str | None = None
+    def __init__(
+        self,
+        client: "AsyncHuaweiSolarClient",
+        model_name: str,
+        *,
+        primary_device: "HuaweiSolarDevice | None" = None,
+    ) -> None:
+        """Initialize with per-instance lock and login state."""
+        super().__init__(client, model_name, primary_device=primary_device)
+        self.__login_lock = asyncio.Lock()
+        self.__heartbeat_enabled = False
+        self.__heartbeat_task: asyncio.Task[None] | None = None
+        self.__username: str | None = None
+        self.__password: str | None = None
 
     async def ensure_logged_in(self, *, force: bool = False) -> bool:
         """Check if it is necessary to login and performs the necessary login sequence if needed."""
         async with self.__login_lock:
             if force:
-                LOGGER.debug(
+                _LOGGER.debug(
                     "Forcefully stopping any heartbeat task (if any is still running)",
                 )
                 self.stop_heartbeat()
 
             if self.__username and not self.__heartbeat_enabled:
-                LOGGER.debug(
+                _LOGGER.debug(
                     "Currently not logged in: logging in now and starting heartbeat",
                 )
-                assert self.__password
+                if not self.__password:
+                    msg = "Password must be set before logging in"
+                    raise InvalidCredentials(msg)
                 if not await self.client.login(self.__username, self.__password):
                     raise InvalidCredentials
 
@@ -247,7 +257,9 @@ class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
 
     def start_heartbeat(self) -> None:
         """Start the heartbeat thread to stay logged in."""
-        assert self.__login_lock.locked(), "Should only be called from within the login_lock!"
+        if not self.__login_lock.locked():
+            msg = "start_heartbeat should only be called from within the login_lock"
+            raise RuntimeError(msg)
 
         if self.__heartbeat_task:
             self.stop_heartbeat()
@@ -258,7 +270,7 @@ class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
                     self.__heartbeat_enabled = await self.client.heartbeat()
                     await asyncio.sleep(HEARTBEAT_INTERVAL)
                 except HuaweiSolarException as err:
-                    LOGGER.warning("Heartbeat stopped because of, %s", err)
+                    _LOGGER.warning("Heartbeat stopped because of, %s", err)
                     self.__heartbeat_enabled = False
 
         self.__heartbeat_enabled = True
@@ -278,7 +290,7 @@ class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
         logged_in = await self.ensure_logged_in()
 
         if not logged_in:
-            LOGGER.warning(
+            _LOGGER.warning(
                 "Could not login, reading file %x will probably fail",
                 file_type,
             )
@@ -290,7 +302,7 @@ class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
                 logged_in = await self.ensure_logged_in(force=True)
 
                 if not logged_in:
-                    LOGGER.exception("Could not login to read file %x", file_type)
+                    _LOGGER.exception("Could not login to read file %x", file_type)
                     raise
 
                 return await self.client.get_file(
@@ -321,13 +333,13 @@ class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
         logged_in = await self.ensure_logged_in()  # we must login again before trying to set the value
 
         if not logged_in:
-            LOGGER.warning("Could not login, setting, %s will probably fail", name)
+            _LOGGER.warning("Could not login, setting, %s will probably fail", name)
 
         if self.__heartbeat_enabled:
             try:
                 await self.client.heartbeat()
             except HuaweiSolarException:
-                LOGGER.warning("Failed to perform heartbeat before write")
+                _LOGGER.warning("Failed to perform heartbeat before write")
 
         try:
             return await super().set(name, value)
@@ -336,7 +348,7 @@ class HuaweiSolarDeviceWithLogin(HuaweiSolarDevice, ABC):
                 logged_in = await self.ensure_logged_in(force=True)
 
                 if not logged_in:
-                    LOGGER.exception("Could not login to set %s", name)
+                    _LOGGER.exception("Could not login to set %s", name)
                     raise
 
                 # Force a heartbeat first when connected with username/password credentials

@@ -11,13 +11,13 @@ from tmodbus.exceptions import ModbusResponseError, ServerDeviceBusyError, Serve
 from huawei_solar.exceptions import ReadException
 from huawei_solar.modbus_pdu import PermissionDeniedError
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 DEVICE_INFOS_START_OBJECT_ID = 0x87
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class DeviceInfo:
     """Device information."""
 
@@ -31,7 +31,7 @@ class DeviceInfo:
     product_type: str | None
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class DeviceIdentifier:
     """Device identifier information."""
 
@@ -77,13 +77,13 @@ async def get_device_infos(client: AsyncModbusClient) -> list[DeviceInfo]:
     if DEVICE_INFOS_START_OBJECT_ID in objects:
         (number_of_devices,) = struct.unpack(">B", objects.pop(DEVICE_INFOS_START_OBJECT_ID))
     else:
-        LOGGER.warning("No 0x87 entry with number of devices found in objects. Ignoring")
+        _LOGGER.warning("No 0x87 entry with number of devices found in objects. Ignoring")
         number_of_devices = -1
 
     device_infos = [_parse_device_entry(device_info_bytes.decode("ascii")) for device_info_bytes in objects.values()]
 
     if number_of_devices >= 0 and len(device_infos) != number_of_devices:
-        LOGGER.warning(
+        _LOGGER.warning(
             "Number of device infos does not match the number of devices: %d != %d",
             len(device_infos),
             number_of_devices,
@@ -104,7 +104,7 @@ async def _read_device_identifier_objects(
             object_id=object_id,
         )
     except (ServerDeviceBusyError, ServerDeviceFailureError, PermissionDeniedError) as e:
-        LOGGER.debug(
+        _LOGGER.debug(
             "Got a %s while reading device identification from server %d",
             type(e).__name__,
             client.unit_id,

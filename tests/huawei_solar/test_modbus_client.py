@@ -26,11 +26,10 @@ async def test_get_invalid_model_name(huawei_solar: AsyncHuaweiSolarClient) -> N
         *[21333, 20018, int.from_bytes(b"\xa0\xa1"), 12336, 12333, 13131, 21580, 226, 0, 0, 0, 0, 0, 226, 10370],
     )
 
-    with (
-        patch.object(huawei_solar, "execute", return_value=value),
-        pytest.raises(DecodeError),
-    ):
-        await huawei_solar.get(rn.MODEL_NAME)
+    with patch.object(huawei_solar, "execute", return_value=value):
+        result = await huawei_solar.get(rn.MODEL_NAME)
+        # Invalid UTF-8 bytes are replaced with backslash escapes
+        assert "\\xa0\\xa1" in result.value
 
 
 async def test_get_serial_number(huawei_solar: AsyncHuaweiSolarClient) -> None:

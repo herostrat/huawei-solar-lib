@@ -24,7 +24,7 @@ class TargetDevice(Flag):
     SMARTLOGGER = auto()
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Result[T]:
     """Modbus register value."""
 

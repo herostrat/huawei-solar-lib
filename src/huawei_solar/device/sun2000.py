@@ -7,7 +7,6 @@ from typing import Any
 
 from huawei_solar import register_names as rn
 from huawei_solar import register_values as rv
-
 from huawei_solar.exceptions import (
     HuaweiSolarException,
     ReadException,

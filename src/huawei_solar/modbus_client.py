@@ -20,7 +20,7 @@ from .modbus_pdu import (
 )
 from .register_client import RegisterAwareModbusClient
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 T = TypeVar("T")
 RT = TypeVar("RT")
@@ -46,7 +46,7 @@ RECONNECT_RETRY_STRATEGY = AsyncRetrying(
     wait=wait_exponential(multiplier=1, min=1, max=10),
     # Stop trying to reconnect if the connection has not been re-established within 1 minute
     stop=stop_after_delay(60),
-    after=lambda retry_call_state: LOGGER.debug(
+    after=lambda retry_call_state: _LOGGER.debug(
         "Backing off before reconnect for %0.1fs after %d tries",
         retry_call_state.upcoming_sleep,
         retry_call_state.attempt_number,
@@ -58,19 +58,19 @@ def log_invalid_response(retry_state: "tenacity.RetryCallState") -> None:
     """Log an invalid response."""
     if retry_state.outcome:
         if e := retry_state.outcome.exception():
-            LOGGER.debug(
+            _LOGGER.debug(
                 "Backing off for %0.1fs after exception response %s",
                 retry_state.upcoming_sleep,
                 e,
             )
         else:
-            LOGGER.debug(
+            _LOGGER.debug(
                 "Backing off for %0.1fs after invalid response %s",
                 retry_state.upcoming_sleep,
                 retry_state.outcome.result(),
             )
     else:
-        LOGGER.debug(
+        _LOGGER.debug(
             "Backing off for %0.1fs before retrying request",
             retry_state.upcoming_sleep,
         )
@@ -105,7 +105,7 @@ class AsyncHuaweiSolarClient(RegisterAwareModbusClient, AsyncModbusClient):
         As defined by the 'Uploading Files' process described in 6.3.7.1 of
         the Solar Inverter Modbus Interface Definitions PDF.
         """
-        LOGGER.debug(
+        _LOGGER.debug(
             "Reading file %#x from server %d",
             file_type,
             self.unit_id,
@@ -153,7 +153,7 @@ class AsyncHuaweiSolarClient(RegisterAwareModbusClient, AsyncModbusClient):
 
     async def login(self, username: str, password: str) -> bool:
         """Login onto the inverter."""
-        LOGGER.debug("Logging in '%s'", username)
+        _LOGGER.debug("Logging in '%s'", username)
         # this circumvents the locking issue when using self.execute which locks on
         # _communication_lock in AsyncSmartTransport.send_and_receive
         assert isinstance(self.transport, AsyncSmartTransport)
@@ -172,14 +172,14 @@ class AsyncHuaweiSolarClient(RegisterAwareModbusClient, AsyncModbusClient):
 
             async def login_on_reconnect() -> None:
                 """Login again after a reconnect."""
-                LOGGER.info("Reconnected to inverter, logging in again")
+                _LOGGER.info("Reconnected to inverter, logging in again")
                 logged_in_again = await self.login(username, password)
                 if not logged_in_again:
-                    LOGGER.error("Failed to login after reconnect. Will not try again")
+                    _LOGGER.error("Failed to login after reconnect. Will not try again")
                     assert isinstance(self.transport, AsyncSmartTransport)
                     self.transport.on_reconnected = None
                 else:
-                    LOGGER.info("Successfully logged in again after reconnect")
+                    _LOGGER.info("Successfully logged in again after reconnect")
 
             async def login_on_reconnect_with_timeout() -> None:
                 """Login again after a reconnect, with timeout."""
@@ -200,13 +200,13 @@ class AsyncHuaweiSolarClient(RegisterAwareModbusClient, AsyncModbusClient):
                 0x1,
             )
         except ModbusResponseError as e:
-            LOGGER.warning("Received an error response when writing to the heartbeat register: %02x", e.error_code)
+            _LOGGER.warning("Received an error response when writing to the heartbeat register: %02x", e.error_code)
             return False
         except TModbusError:
-            LOGGER.exception("Exception during heartbeat")
+            _LOGGER.exception("Exception during heartbeat")
             return False
         else:
-            LOGGER.debug("Heartbeat succeeded")
+            _LOGGER.debug("Heartbeat succeeded")
             return True
 
 
