@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import weakref
 from typing import TypeVar
 
 import tenacity
@@ -38,8 +39,10 @@ WAIT_FOR_LOGIN_TIMEOUT = 5
 
 HEARTBEAT_REGISTER = 49999
 
-FILE_UPLOAD_MAX_RETRIES = 6
-FILE_UPLOAD_RETRY_TIMEOUT = 10
+# Keyed by transport instance so all sub-device clients (via for_unit_id())
+# sharing the same transport automatically share the same lock.
+# WeakKeyDictionary ensures the lock is cleaned up when the transport is GC'd.
+_file_operation_locks: weakref.WeakKeyDictionary[object, asyncio.Lock] = weakref.WeakKeyDictionary()
 
 
 RECONNECT_RETRY_STRATEGY = AsyncRetrying(
@@ -89,6 +92,22 @@ RESPONSE_RETRY_STRATEGY = AsyncRetrying(
 class AsyncHuaweiSolarClient(RegisterAwareModbusClient, AsyncModbusClient):
     """Async client to Huawei Solar devices."""
 
+    @property
+    def _file_operation_lock(self) -> asyncio.Lock:
+        """Lock for serializing multi-step file operations.
+
+        The EMMA/SDongle can only handle one file upload session at a time.
+        The lock is stored in a module-level WeakKeyDictionary keyed by
+        transport, so all clients sharing the same transport (via
+        for_unit_id()) automatically share the same lock.
+        """
+        try:
+            return _file_operation_locks[self.transport]
+        except KeyError:
+            lock = asyncio.Lock()
+            _file_operation_locks[self.transport] = lock
+            return lock
+
     def for_unit_id(self, unit_id: int) -> "AsyncHuaweiSolarClient":
         """Get a copy of this client for a different unit ID."""
         if unit_id == self.unit_id:
@@ -104,52 +123,58 @@ class AsyncHuaweiSolarClient(RegisterAwareModbusClient, AsyncModbusClient):
 
         As defined by the 'Uploading Files' process described in 6.3.7.1 of
         the Solar Inverter Modbus Interface Definitions PDF.
+
+        The entire file transfer is serialized with _file_operation_lock because
+        the gateway (EMMA/SDongle) can only handle one file upload session at a
+        time. Without this, concurrent uploads from different unit IDs interleave
+        their PDUs, causing ServerDeviceBusyError (0x06).
         """
-        _LOGGER.debug(
-            "Reading file %#x from server %d",
-            file_type,
-            self.unit_id,
-        )
-        # Start the upload
-        start_upload_response = await self.execute(
-            StartFileUploadPDU(
-                file_type=file_type,
-                customised_data=customized_data or b"",
-            ),
-        )
-
-        file_length = start_upload_response.file_length
-        data_frame_length = start_upload_response.data_frame_length
-
-        # Request the data in 'frames'
-
-        file_data: bytes = b""
-        next_frame_no = 0
-
-        while (next_frame_no * data_frame_length) < file_length:
-            data_upload_response = await self.execute(
-                UploadFileFramePDU(file_type=file_type, frame_no=next_frame_no),
+        async with self._file_operation_lock:
+            _LOGGER.debug(
+                "Reading file %#x from server %d",
+                file_type,
+                self.unit_id,
+            )
+            # Start the upload
+            start_upload_response = await self.execute(
+                StartFileUploadPDU(
+                    file_type=file_type,
+                    customised_data=customized_data or b"",
+                ),
             )
 
-            file_data += data_upload_response.frame_data
-            next_frame_no += 1
+            file_length = start_upload_response.file_length
+            data_frame_length = start_upload_response.data_frame_length
 
-        # Complete the upload and check the CRC
-        file_crc = await self.execute(
-            CompleteUploadPDU(file_type=file_type),
-        )
+            # Request the data in 'frames'
 
-        # swap upper and lower two bytes to match how computeCRC works
-        swapped_crc = ((file_crc << 8) & 0xFF00) | ((file_crc >> 8) & 0x00FF)
+            file_data: bytes = b""
+            next_frame_no = 0
 
-        if (calculated_crc := int.from_bytes(calculate_crc16(file_data))) != swapped_crc:
-            msg = (
-                f"Computed CRC {calculated_crc:04x} for file {file_type} "
-                f"does not match expected value {swapped_crc:04x}"
+            while (next_frame_no * data_frame_length) < file_length:
+                data_upload_response = await self.execute(
+                    UploadFileFramePDU(file_type=file_type, frame_no=next_frame_no),
+                )
+
+                file_data += data_upload_response.frame_data
+                next_frame_no += 1
+
+            # Complete the upload and check the CRC
+            file_crc = await self.execute(
+                CompleteUploadPDU(file_type=file_type),
             )
-            raise ReadException(msg)
 
-        return file_data
+            # swap upper and lower two bytes to match how computeCRC works
+            swapped_crc = ((file_crc << 8) & 0xFF00) | ((file_crc >> 8) & 0x00FF)
+
+            if (calculated_crc := int.from_bytes(calculate_crc16(file_data))) != swapped_crc:
+                msg = (
+                    f"Computed CRC {calculated_crc:04x} for file {file_type} "
+                    f"does not match expected value {swapped_crc:04x}"
+                )
+                raise ReadException(msg)
+
+            return file_data
 
     async def login(self, username: str, password: str) -> bool:
         """Login onto the inverter."""
